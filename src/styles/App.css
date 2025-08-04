@@ -1,0 +1,78 @@
+/* Contenedor principal de la aplicación que usa flexbox para organizar sus elementos de manera vertical */
+.app {
+  display: flex;  /* Usamos flexbox */
+  flex-direction: column;  /* Los elementos se organizan de arriba a abajo */
+}
+
+/* Contenedor del menú que se fija en la parte superior de la pantalla */
+.menu-container {
+  position: fixed;  /* Fija el menú en la parte superior de la pantalla */
+  top: 0;  /* Ubica el menú al inicio de la pantalla desde la parte superior */
+  left: 0;  /* Ubica el menú al inicio de la pantalla desde la izquierda */
+  width: 100%;  /* El menú ocupa todo el ancho de la pantalla */
+  background-color: #98A8F8;  /* Color de fondo azul claro */
+  padding: 10px;  /* Espacio interno alrededor del contenido */
+  z-index: 1000;  /* Asegura que el menú esté por encima de otros elementos */
+}
+
+/* Estilos para la lista de elementos dentro del menú */
+.menu-container ul {
+  display: flex;  /* Los elementos del menú se muestran en fila */
+  justify-content: space-around;  /* Distribuye los elementos equitativamente a lo largo del ancho */
+  list-style: none;  /* Elimina los puntos de lista predeterminados */
+  padding: 0;  /* Elimina el padding predeterminado de la lista */
+}
+
+/* Estilos para los elementos de la lista del menú */
+.menu-container li {
+  padding: 10px;  /* Agrega espacio alrededor de cada elemento del menú */
+}
+
+/* Estilos para los enlaces dentro de los elementos del menú */
+.menu-container li a {
+  color: white;  /* Color del texto del enlace en blanco */
+  text-decoration: none;  /* Elimina el subrayado predeterminado de los enlaces */
+  font-weight: bold;  /* Hace el texto en negrita */
+}
+
+/* Estilos para los enlaces cuando el mouse pasa sobre ellos */
+.menu-container li a:hover {
+  text-decoration: underline;  /* Subraya el enlace cuando el mouse pasa sobre él */
+}
+
+/* Diseño de la página Home */
+
+/* Estilo general para el contenedor de la página de inicio */
+.home-container {
+  margin-top: 50px;  /* Deja un espacio en la parte superior para el menú fijo */
+  padding: 20px;  /* Agrega espacio interno alrededor del contenido */
+  background-color: white;  /* Fondo blanco para la página de inicio */
+}
+
+/* Encabezado de la página de inicio, con el logo y el eslogan */
+.home-header {
+  display: flex;  /* Usa flexbox para organizar el contenido dentro del encabezado */
+  justify-content: space-between;  /* Distribuye los elementos de manera que estén alineados a los extremos */
+  align-items: center;  /* Alinea los elementos de arriba hacia abajo */
+  padding: 20px;  /* Espacio interno alrededor del encabezado */
+  background-color: #98A8F8;  /* Fondo azul claro */
+  color: #FAF7F0;  /* Color del texto en blanco */
+}
+
+/* Estilo para el logo en el encabezado */
+.logo {
+  height: 50px;  /* El logo tiene una altura de 50px */
+}
+
+/* Estilo para el eslogan en el encabezado */
+.slogan {
+  font-size: 18px;  /* Tamaño de fuente de 18px */
+  font-weight: bold;  /* El eslogan está en negrita */
+}
+
+/* Estilo para el contenido principal de la página de inicio */
+.home-content {
+  padding: 20px;  /* Agrega espacio interno alrededor del contenido */
+  font-size: 16px;  /* Tamaño de fuente de 16px */
+  color: #333;  /* Color del texto en gris oscuro */
+}

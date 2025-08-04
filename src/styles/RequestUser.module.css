@@ -1,0 +1,215 @@
+.pageContainer {
+  position: relative;
+  height: 100vh;
+  width: 100%;
+  overflow: hidden;
+}
+
+.overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.loginWrapper {
+  display: flex;
+  flex-direction: row;
+  background-color: white;
+  border-radius: 15px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  width: 850px;
+  max-width: 95%;
+  overflow: hidden;
+}
+
+.welcomeSection {
+  flex: 1;
+  background: linear-gradient(135deg, #98A8F8, #CDFCF6);
+  color: #003366;
+  padding: 40px 30px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  position: relative;
+}
+
+.welcomeSection h2 {
+  font-size: 26px;
+  font-weight: bold;
+  margin-bottom: 10px;
+  position: relative;
+  color: #003366;
+}
+
+.welcomeSection h2::after {
+  content: '';
+  display: block;
+  width: 350px;
+  height: 3px;
+  background-color: white;
+  margin-top: 12px;
+  border-radius: 2px;
+}
+
+.welcomeSection p {
+  font-size: 16px;
+  line-height: 1.4;
+  margin-top: 15px;
+  color: #ffffff;
+}
+
+.formSection {
+  flex: 1;
+  padding: 40px 30px;
+  background-color: #ffffff;
+}
+
+.title {
+  text-align: center;
+  color: #003366;
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 20px;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.inputGroup {
+  margin-bottom: 0;
+}
+
+.inputGroup label {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 8px;
+  color: #3A3A3A;
+  font-size: 14px;
+}
+
+.inputGroup input,
+.inputGroup select {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 16px;
+}
+
+.inputGroup input:focus,
+.inputGroup select:focus {
+  border-color: #98A8F8;
+  outline: none;
+  box-shadow: 0 0 5px rgba(152, 168, 248, 0.8);
+}
+
+.buttonGroup {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 30px;
+}
+
+.send {
+  width: 48%;
+  padding: 12px 20px;
+  background-color: #98A8F8;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.send:hover {
+  background-color: #003366;
+  transform: scale(1.05);
+}
+
+.back {
+  width: 48%;
+  padding: 12px 20px;
+  background-color: white;
+  color: #98A8F8;
+  border: 1px solid #98A8F8;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.back:hover {
+  background-color: #003366;
+  color: white;
+  transform: scale(1.05);
+}
+
+.successMessage {
+  color: #3A3A3A;
+  font-size: 16px;
+  margin-top: 20px;
+  text-align: center;
+  line-height: 1.6;
+}
+
+.centerMessageBox {
+  width: 100%;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+}
+
+.centerMessageBox button {
+  margin-top: 20px;
+  width: 60%;
+  padding: 12px;
+  border-radius: 5px;
+  border: 1px solid #98A8F8;
+  color: #98A8F8;
+  background-color: white;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.centerMessageBox button:hover {
+  background-color: #003366;
+  color: white;
+  border: none;
+}
+
+/* Versión responsive para pantallas pequeñas */
+@media (max-width: 768px) {
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .buttonGroup {
+    flex-direction: column;
+  }
+
+  .send,
+  .back {
+    width: 100%;
+    margin-bottom: 10px;
+  }
+
+  .loginWrapper {
+    flex-direction: column;
+  }
+}

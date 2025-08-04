@@ -1,0 +1,14 @@
+/*Contenedor principal de la estructura de la página */
+.layout {
+    display: flex;  /* Establece que el contenedor sea un contenedor flexible (flexbox) */
+    flex-direction: column;  /* Organiza los elementos dentro del contenedor de forma vertical */
+    background-color: #FFFFFF;  /* Establece el fondo del contenedor en blanco */
+    min-height: 100vh;  /* Asegura que el contenedor ocupe al menos el 100% de la altura de la ventana */
+  }
+  
+  /* .content: Estilo para el área de contenido principal dentro del layout */
+  .content {
+    margin-top: 0px;  /* Deja un espacio en la parte superior de 60px para el menú fijo */
+    padding: 0px;  /* Agrega un espacio interno alrededor del contenido */
+    flex: 1;  /* Permite que el contenido principal ocupe el espacio restante disponible */
+  }

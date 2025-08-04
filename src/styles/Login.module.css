@@ -1,0 +1,234 @@
+/* ---------- Contenedor principal ---------- */
+.pageContainer {
+  position: relative;
+  height: 100vh;
+  width: 100%;
+  overflow: hidden;
+  z-index: 0;
+  background-color: #007bbe81;
+}
+
+
+/* ---------- Texto giratorio centrado ---------- */
+.rotatingTextContainer {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10;
+  padding: 20px;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  pointer-events: none;
+}
+
+.fixedText {
+  font-size: 40px;
+  font-weight: 800;
+  color: #f8f8f8;
+  white-space: nowrap;
+  margin-right: 8px;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+}
+
+/* ---------- Botón superior ---------- */
+.loginTopButton {
+  background-color: #98A8F8;
+  color: white;
+  font-weight: bold;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 50px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: background-color 0.3s ease, transform 0.2s ease, opacity 0.4s ease;
+  opacity: 0;
+  transform: translateY(-10px);
+  animation: fadeSlideIn 0.6s ease forwards;
+  z-index: 10;
+  position: absolute;
+  top: 20px;
+  right: 30px;
+}
+
+.loginTopButton:hover {
+  background-color: #98A8F8;
+  transform: scale(1.05);
+}
+
+@keyframes fadeSlideIn {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ---------- Modal de Login ---------- */
+.overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(255, 255, 255, 0.1);
+  z-index: 999;
+}
+
+.loginWrapper {
+  display: flex;
+  flex-direction: row;
+  background-color: white;
+  border-radius: 15px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  width: 800px;
+  max-width: 95%;
+  overflow: hidden;
+}
+
+.welcomeSection {
+  flex: 1;
+  background: linear-gradient(135deg, #98A8F8, #CDFCF6);
+  color: #003366;
+  padding: 40px 30px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.welcomeSection h2 {
+  font-size: 26px;
+  font-weight: bold;
+  margin-bottom: 10px;
+  color: #003366;
+}
+
+.welcomeSection h2::after {
+  content: '';
+  display: block;
+  width: 330px;
+  height: 3px;
+  background-color: white;
+  margin-top: 10px;
+  border-radius: 2px;
+}
+
+.welcomeSection p {
+  font-size: 16px;
+  line-height: 1.4;
+  margin-top: 15px;
+  color: #ffffff;
+}
+
+.formSection {
+  flex: 1;
+  padding: 40px 30px;
+  background-color: #ffffff;
+}
+
+.title {
+  text-align: center;
+  color: #003366;
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 20px;
+}
+
+.inputGroup {
+  margin-bottom: 20px;
+}
+
+.inputGroup label {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 8px;
+  color: #3A3A3A;
+  font-size: 14px;
+}
+
+.inputGroup input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 16px;
+}
+
+.inputGroup input:focus {
+  border-color: #98A8F8;
+  outline: none;
+}
+
+.links {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.link {
+  color: #003366;
+  text-decoration: none;
+  font-size: 14px;
+  margin: 0 10px;
+  font-weight: 600;
+  transition: color 0.3s ease;
+}
+
+.link:hover {
+  color: #3A3A3A;
+  text-decoration: underline;
+}
+
+.loginButton {
+  width: 100%;
+  padding: 14px;
+  background-color: #003366;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.loginButton:hover {
+  background-color: #98A8F8;
+  transform: scale(1.05);
+}
+
+.closeButton {
+  background-color: #003366;
+  color: white;
+  font-weight: bold;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 50px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  margin-top: 30px;
+  margin-left: auto;
+  animation: fadeSlideUp 0.6s ease forwards;
+}
+
+.closeButton:hover {
+  background-color: #003366;
+  transform: scale(1.05);
+}
+
+@keyframes fadeSlideUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+

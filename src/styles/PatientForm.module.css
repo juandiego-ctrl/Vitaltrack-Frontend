@@ -1,0 +1,133 @@
+.container {
+  padding: 40px 80px;
+  background-color: #FAF7F0;
+  border-radius: 18px;
+  width: 100%;
+  margin: 2px auto;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.05);
+}
+
+/* Eliminado .title */
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+}
+
+.accordionSection {
+  border-radius: 16px;
+  overflow: hidden;
+  margin-bottom: 2px;
+  background-color: #F2F2F2; /* gris clarito elegante */
+  border-left: 6px solid #007CBE;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.04);
+  transition: box-shadow 0.3s ease;
+}
+
+.accordionSection:hover {
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+}
+
+.accordionHeader {
+  background-color: transparent;
+  color: #000;
+  padding: 16px 26px;
+  font-size: 15px;
+  font-weight: 500;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+}
+
+.accordionTitle {
+  flex: 1;
+}
+
+.accordionArrow {
+  font-size: 18px;
+  transition: transform 0.3s ease;
+  display: flex;
+  align-items: center;
+}
+
+.rotateArrow {
+  transform: rotate(180deg);
+  transition: transform 0.3s ease;
+}
+
+.accordionContent {
+  padding: 30px;
+  background-color: white;
+  animation: fadeIn 0.3s ease-in-out;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 25px;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  background: #F5F9FF;
+  padding: 18px;
+  border-radius: 12px;
+  border: 1px solid #E0EAFB;
+  box-shadow: 0 2px 8px rgba(152, 168, 248, 0.1);
+  transition: box-shadow 0.3s ease;
+}
+
+.formGroup:hover {
+  box-shadow: 0 4px 14px rgba(152, 168, 248, 0.15);
+}
+
+label {
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 8px;
+  color: #333;
+}
+
+.input {
+  padding: 12px;
+  font-size: 14px;
+  border: 1px solid #007CBE;
+  border-radius: 8px;
+  background-color: #ffffff;
+  transition: border-color 0.3s ease;
+}
+
+.input:focus {
+  border-color: #4FBEEA;
+  outline: none;
+}
+
+.buttonContainer {
+  display: flex;
+  justify-content: center;
+  margin-top: 50px;
+}
+
+.submitButton {
+  background-color: #007CBE;
+  color: white;
+  padding: 16px 34px;
+  font-size: 17px;
+  font-weight: bold;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background-color 0.3s, transform 0.2s;
+  box-shadow: 0 6px 14px rgba(152, 168, 248, 0.2);
+}
+
+.submitButton:hover {
+  background-color: #4FBEEA;
+  transform: scale(1.05);
+}
+
