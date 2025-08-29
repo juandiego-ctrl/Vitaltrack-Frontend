@@ -39,14 +39,11 @@ const IconosFlotantes = () => {
   const [filas, setFilas] = useState(0);
 
 useEffect(() => {
-  const cantidad = 30; // Número fijo de filas animadas
-
+  const filaHeight = 32;
+  const alturaPantalla = window.innerHeight;
+  const cantidad = Math.ceil(alturaPantalla / filaHeight);
   setFilas(cantidad);
 }, []);
-
-
-
-
 
 
   return (

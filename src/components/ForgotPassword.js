@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import styles from '../styles/ForgotPassword.module.css';
+import IconosFlotantes from './IconosFlotantes';
 
 
 const ForgotPassword = () => {
@@ -22,6 +23,7 @@ const ForgotPassword = () => {
 
   return (
     <div className={styles.pageContainer}>
+      <IconosFlotantes />
       <div className={styles.overlay}>
         <div className={styles.loginWrapper}>
           <div className={styles.welcomeSection}>

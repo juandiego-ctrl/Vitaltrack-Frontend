@@ -1,0 +1,89 @@
+.crear-usuario-container {
+  max-width: 800px;        /* 📌 Limita el ancho máximo */
+  margin: 2rem auto;       /* 📌 Centrado horizontal y con espacio arriba/abajo */
+  background: #fdfdfd;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0px 6px 20px rgba(0,0,0,0.1);
+}
+
+/* Centrar título */
+.crear-usuario-container h2 {
+  text-align: center;
+  margin-bottom: 1.5rem;
+  color: #222;
+  font-size: 1.6rem;
+  font-weight: 600;
+}
+
+/* Dar estilo a los fieldset */
+fieldset {
+  border: 1px solid #e0e0e0;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  border-radius: 8px;
+  background: #fff;
+}
+
+/* Etiquetas */
+legend {
+  font-weight: bold;
+  color: #444;
+  font-size: 1rem;
+}
+
+/* Inputs más compactos */
+input, select {
+  display: block;
+  width: 100%;
+  margin: 0.5rem 0;
+  padding: 10px 14px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  transition: all 0.3s;
+}
+
+input:focus, select:focus {
+  border: 1px solid #007bff;
+  outline: none;
+  box-shadow: 0 0 5px rgba(0,123,255,0.3);
+}
+
+/* Botón */
+.submit-btn {
+  background: #007bff;
+  color: white;
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  width: 100%;
+  font-size: 1rem;
+  font-weight: bold;
+  transition: background 0.3s, transform 0.1s;
+}
+
+.submit-btn:hover {
+  background: #0056b3;
+  transform: scale(1.02);
+}
+
+.back-btn {
+  margin-top: 1rem;
+  background: #6c757d;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  width: 100%;
+  font-size: 16px;
+  font-weight: bold;
+  transition: background 0.3s;
+}
+
+.back-btn:hover {
+  background: #5a6268;
+}
+

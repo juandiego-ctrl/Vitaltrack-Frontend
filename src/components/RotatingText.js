@@ -49,7 +49,7 @@ const RotatingText = forwardRef((props, ref) => {
   };
 
   const elements = useMemo(() => {
-    const currentText = texts[currentTextIndex];
+    const currentText = texts?.[currentTextIndex] || '';
     if (splitBy === "characters") {
       const words = currentText.split(" ");
       return words.map((word, i) => ({
@@ -166,7 +166,7 @@ const RotatingText = forwardRef((props, ref) => {
       layout
       transition={transition}
     >
-      <span className="text-rotate-sr-only">{texts[currentTextIndex]}</span>
+      <span className="text-rotate-sr-only">{texts?.[currentTextIndex] || ''}</span>
       <AnimatePresence
         mode={animatePresenceMode}
         initial={animatePresenceInitial}

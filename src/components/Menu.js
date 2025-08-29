@@ -3,8 +3,7 @@ import styles from '../styles/Menu.module.css';
 import { useNavigate } from 'react-router-dom';
 
 import { FaHome, FaFileUpload, FaUser, FaNotesMedical } from 'react-icons/fa'; // íconos
-
-import fondo from '../assets/images/banner.png';
+import { IoIosLogOut } from "react-icons/io";
 import banner from '../assets/images/logo.png';
 
 const Menu = () => {
@@ -58,13 +57,9 @@ const Menu = () => {
               <li
                 onMouseEnter={() => handleSubMouseEnter('cac')}
                 onMouseLeave={handleSubMouseLeave}
+                onClick={() => navigate('/home/cargue-cancer')}
               >
-                Cuenta de alto costo
-                {activeSubItem === 'cac' && (
-                  <ul className={styles.subSubMenu}>
-                    <li onClick={() => navigate('/home/cargue-cancer')}>Cargue cáncer</li>
-                  </ul>
-                )}
+                Cargue masivo
               </li>
             </ul>
           )}
@@ -82,14 +77,25 @@ const Menu = () => {
               <li
                 onMouseEnter={() => handleSubMouseEnter('cancer')}
                 onMouseLeave={handleSubMouseLeave}
+                onClick={() => navigate('/home/cancer-actual')}
               >
-                Cáncer
-                {activeSubItem === 'cancer' && (
-                  <ul className={styles.subSubMenu1}>
-                    <li onClick={() => navigate('/home/cancer-actual')}>Cáncer actual</li>
-                  </ul>
-                )}
+                Edicion de registros
               </li>
+            </ul>
+          )}
+        </div>
+
+
+        <div
+          className={styles.menuItem}
+          onMouseEnter={() => handleMouseEnter('crear usuario')}
+          onMouseLeave={handleMouseLeave}
+        >
+          {activeItem === 'crear usuario' && <div className={styles.activeBubble} />}
+          <FaUser size={30} />
+          {activeItem === 'crear usuario' && (
+            <ul className={styles.subMenu}>
+              <li onClick={() => navigate('/home/crear-usuario')}>Crear Usuario</li>
             </ul>
           )}
         </div>
@@ -100,7 +106,7 @@ const Menu = () => {
           onMouseLeave={handleMouseLeave}
         >
           {activeItem === 'perfil' && <div className={styles.activeBubble} />}
-          <FaUser size={30} />
+          <IoIosLogOut size={35}/>
           {activeItem === 'perfil' && (
             <ul className={styles.subMenu}>
               <li onClick={handleLogout}>Cerrar sesión</li>

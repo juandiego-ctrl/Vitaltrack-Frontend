@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import styles from '../styles/RequestUser.module.css';
-import Carousel from './Carousel';
+import IconosFlotantes from './IconosFlotantes';
+
 
 const RequestUser = () => {
   const [formData, setFormData] = useState({
@@ -28,7 +29,7 @@ const RequestUser = () => {
 
   return (
     <div className={styles.pageContainer}>
-      <Carousel />
+      <IconosFlotantes />
       <div className={styles.overlay}>
         <div className={styles.loginWrapper}>
           {messageSent ? (

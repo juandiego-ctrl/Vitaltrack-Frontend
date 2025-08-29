@@ -1,6 +1,6 @@
 .backgroundWrapper {
   width: 100%;
-  background-color: #bbe7ff; /* O cualquier color que prefieras */
+  background:none; /* O cualquier color que prefieras */
   padding: 40px 0; /* Espaciado arriba y abajo */
   margin-top: 50px;
   border-radius: 30px;
@@ -26,7 +26,7 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background-image: url('../assets/images/background.jpg');
+  background-color: #ffffff;
   background-repeat: no-repeat;
   background-size: cover;
   background-position: center;

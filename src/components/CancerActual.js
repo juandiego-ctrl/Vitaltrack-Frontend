@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom'; // Para navegación
 import styles from '../styles/CancerActual.module.css';
+import * as XLSX from "xlsx";
 
 const CancerActual = () => {
   const [showFilters, setShowFilters] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
   const navigate = useNavigate(); // Hook para navegar entre páginas
+  const [selectedRecords, setSelectedRecords] = useState([]);
 
   const toggleFilters = () => {
     setShowFilters(!showFilters);
@@ -60,6 +62,27 @@ const CancerActual = () => {
   const handleDoubleClick = () => {
     navigate('/home/cancer-actual/patient/');
   };
+    // 👇 seleccionar/desmarcar registros
+  const toggleSelect = (id) => {
+    setSelectedRecords((prev) =>
+      prev.includes(id) ? prev.filter(r => r !== id) : [...prev, id]
+    );
+  };
+
+  // 👇 exportar seleccionados a Excel
+  const exportSelected = () => {
+    const dataToExport = searchResults.filter(r => selectedRecords.includes(r.id));
+
+    if (dataToExport.length === 0) {
+      alert("Por favor selecciona al menos un registro.");
+      return;
+    }
+
+    const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Registros");
+    XLSX.writeFile(workbook, "registros.xlsx");
+  };
 
   const departamentos = [
     'Amazonas', 'Antioquia', 'Arauca', 'Atlántico', 'Bogotá', 'Bolívar', 'Boyacá', 'Caldas', 'Caquetá', 'Casanare', 'Cauca', 'Cesar', 'Chocó', 'Córdoba', 'Cundinamarca', 'Guainía', 'Guaviare', 'Huila', 'La Guajira', 'Magdalena', 'Meta', 'Nariño', 'Norte de Santander', 'Putumayo', 'Quindío', 'Risaralda', 'San Andrés y Providencia', 'Santander', 'Sucre', 'Tolima', 'Valle del Cauca', 'Vaupés', 'Vichada'
@@ -77,11 +100,11 @@ const CancerActual = () => {
         <button className={styles.filterButton} onClick={toggleFilters}>
           {showFilters ? '-' : '+'}
         </button>
-        <button className={styles.button}>Editar</button>
         <button className={styles.button} onClick={handleSearch}>Buscar</button>
         <button className={styles.button}>Exportar registros</button>
         <button className={styles.button}>Exportar registros completos</button>
         <button className={styles.button}>Exportar registros relacionados</button>
+        <button className={styles.button} onClick={() => navigate(-1)}> Regresar </button>
         <button
           className={styles.helpButton}
           onClick={() => window.open('https://procex.co/archivos/manuales/CAC/MODULO/CAC_CANCER_MODULO.pdf', '_blank')}
@@ -243,6 +266,7 @@ const CancerActual = () => {
           <table className={styles.resultsTable}>
             <thead>
               <tr>
+                <th>Seleccionar</th>
                 <th>ID Único</th>
                 <th>1. Primer nombre</th>
                 <th>3. Primer apellido</th>
@@ -260,11 +284,13 @@ const CancerActual = () => {
                 <th>Anulado</th>
                 <th>Estado</th>
                 <th>Cantidad alertas</th>
+                <th>Acciones</th>
               </tr>
             </thead>
             <tbody>
               {searchResults.map((result) => (
                 <tr key={result.id} onDoubleClick={handleDoubleClick}>
+                  <td><input type="checkbox" checked={selectedRecords.includes(result.id)} onChange={() => toggleSelect(result.id)}/></td>
                   <td>{result.id}</td>
                   <td>{result.firstName}</td>
                   <td>{result.lastName}</td>
@@ -282,6 +308,10 @@ const CancerActual = () => {
                   <td>{result.canceled}</td>
                   <td>{result.state}</td>
                   <td>{result.alertsCount}</td>
+                    <td>
+                    <button onClick={() => alert("Editar " + result.id)}>Editar</button>
+                    <button onClick={() => alert("Eliminar " + result.id)}>Eliminar</button>
+                  </td>
                 </tr>
               ))}
             </tbody>

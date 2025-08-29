@@ -25,18 +25,20 @@
   gap: 10px;
 }
 
-.button {
+.button1 {
   background-color: #007CBE;
   color: white;
   border: none;
-  padding: 10px 15px;
+  padding: 5px 15px;
   border-radius: 5px;
   cursor: pointer;
   font-size: 14px;
   transition: background-color 0.3s;
+  height: 35px;
+  margin-top: 35px;
 }
 
-.button:hover {
+.button1:hover {
   background-color: #4FBEEA;
 }
 
@@ -200,7 +202,7 @@
   border-radius: 5px;
   font-size: 14px;
   flex: 1;
-  min-width: 240px;
+  min-width: 200px;
 }
 
 .submitButton {
@@ -314,3 +316,76 @@
     transform: translateY(0);
   }
 }
+
+.progressBarWrapper {
+  width: 100%;
+  background-color: #f0f0f0;
+  border-radius: 8px;
+  overflow: hidden;
+  height: 22px;
+}
+
+.progressBar {
+  background-color: #007bff;
+  height: 100%;
+  color: white;
+  font-size: 12px;
+  font-weight: bold;
+  text-align: center;
+  transition: width 0.5s ease;
+}
+
+/* Progreso junto al nombre del usuario */
+.userCell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.userName {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.progressPlaceholder {
+  color: #98a2b3;
+}
+
+.progressWrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.progressTrack {
+  width: 140px;
+  height: 10px;
+  background-color: #e9ecef;
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #00c6ff, #007bff);
+  transition: width 0.8s ease;
+}
+
+.progressPct {
+  font-size: 12px;
+  font-weight: 700;
+  color: #0f172a;
+  min-width: 34px;
+  text-align: right;
+}
+
+.progressMini {
+  font-size: 11px;
+  color: #475569;
+  background: #eef6ff;
+  padding: 2px 6px;
+  border-radius: 6px;
+}
+

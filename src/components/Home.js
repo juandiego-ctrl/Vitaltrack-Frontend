@@ -157,6 +157,7 @@ const Home = () => {
               </div>
             </div>
 
+
             {/* Homenaje al personal de salud */}
             <div className={styles.sectionBox}>
               <h2 className={styles.sectionTitle}>Homenaje al Personal de Salud</h2>

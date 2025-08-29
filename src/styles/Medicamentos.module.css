@@ -1,0 +1,46 @@
+.medicamentosContainer {
+  max-width: 600px;
+  margin: auto;
+  padding: 20px;
+  background: #fffaf7;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.title {
+  text-align: center;
+  font-size: 1.8rem;
+  font-weight: bold;
+  color: #50302c;
+  margin-bottom: 20px;
+}
+
+.form {
+  margin-bottom: 20px;
+}
+
+.btnGuardar {
+  width: 100%;
+  background: linear-gradient(135deg, #007bff, #00c6ff);
+  border: none;
+  color: white;
+  font-weight: bold;
+  padding: 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+
+.btnGuardar:hover {
+  background: linear-gradient(135deg, #0056b3, #0096d6);
+  box-shadow: 0px 6px 15px rgba(0, 123, 255, 0.5);
+  transform: translateY(-2px);
+}
+
+.listado {
+  margin-top: 20px;
+  background: #f9f4f2;
+  padding: 15px;
+  border-radius: 10px;
+}
