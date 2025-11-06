@@ -205,7 +205,7 @@
   min-width: 200px;
 }
 
-.submitButton {
+.submitButton1 {
   background-color: #007CBE;
   color: white;
   border: none;
@@ -214,6 +214,8 @@
   cursor: pointer;
   font-size: 14px;
   transition: background-color 0.3s;
+  height: 40px;
+  margin-top: 10px;
 }
 
 .submitButton:hover {

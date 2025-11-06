@@ -227,7 +227,7 @@ const CargueCancer = () => {
             className={styles.input}
             placeholder="Consulta de paciente, por numero de cedula"
           />
-          <button className={styles.submitButton}>Buscar</button>
+          <button className={styles.submitButton1}>Buscar</button>
         </form>
       </div>
 

@@ -1,10 +1,10 @@
 .crear-usuario-container {
   max-width: 800px;        /* 📌 Limita el ancho máximo */
   margin: 2rem auto;       /* 📌 Centrado horizontal y con espacio arriba/abajo */
-  background: #fdfdfd;
+  background: #4FBEEA;
   padding: 2rem;
   border-radius: 12px;
-  box-shadow: 0px 6px 20px rgba(0,0,0,0.1);
+  box-shadow: 0px 6px 20px rgba(0,0,0,0.10);
 }
 
 /* Centrar título */
@@ -16,21 +16,31 @@
   font-weight: 600;
 }
 
-/* Dar estilo a los fieldset */
 fieldset {
   border: 1px solid #e0e0e0;
-  padding: 1.5rem;
+  padding: 1.5rem 1rem 1rem 1rem; /* más espacio arriba */
   margin-bottom: 1.5rem;
   border-radius: 8px;
   background: #fff;
+  position: relative;
 }
 
-/* Etiquetas */
-legend {
+.fieldset-title {
+  font-size: 1.2rem;
   font-weight: bold;
-  color: #444;
-  font-size: 1rem;
+  color: #000;
+  margin-bottom: 1rem;   /* separa el título de los inputs */
+  margin-top: -0.5rem;   /* lo sube un poco hacia arriba */
 }
+
+legend {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #333;
+  margin-left: 10px;
+  padding: 0 6px;
+}
+
 
 /* Inputs más compactos */
 input, select {
@@ -52,8 +62,8 @@ input:focus, select:focus {
 
 /* Botón */
 .submit-btn {
-  background: #007bff;
-  color: white;
+  background: #ffffff;
+  color: #000;
   padding: 12px;
   border: none;
   border-radius: 8px;
@@ -71,8 +81,8 @@ input:focus, select:focus {
 
 .back-btn {
   margin-top: 1rem;
-  background: #6c757d;
-  color: white;
+  background: #ffffff;
+  color: #000;
   padding: 10px 20px;
   border: none;
   border-radius: 8px;
@@ -84,6 +94,7 @@ input:focus, select:focus {
 }
 
 .back-btn:hover {
-  background: #5a6268;
+  background: #0056b3;
+  transform: scale(1.02);
 }
 

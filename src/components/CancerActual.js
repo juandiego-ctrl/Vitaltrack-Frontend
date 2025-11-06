@@ -102,8 +102,6 @@ const CancerActual = () => {
         </button>
         <button className={styles.button} onClick={handleSearch}>Buscar</button>
         <button className={styles.button}>Exportar registros</button>
-        <button className={styles.button}>Exportar registros completos</button>
-        <button className={styles.button}>Exportar registros relacionados</button>
         <button className={styles.button} onClick={() => navigate(-1)}> Regresar </button>
         <button
           className={styles.helpButton}
@@ -309,9 +307,10 @@ const CancerActual = () => {
                   <td>{result.state}</td>
                   <td>{result.alertsCount}</td>
                     <td>
-                    <button onClick={() => alert("Editar " + result.id)}>Editar</button>
-                    <button onClick={() => alert("Eliminar " + result.id)}>Eliminar</button>
-                  </td>
+                      <button onClick={() => alert("Editar " + result.id)} style={{ textDecoration: "underline",  color:"blue"}}>
+                        EDITAR
+                      </button>
+                    </td>
                 </tr>
               ))}
             </tbody>

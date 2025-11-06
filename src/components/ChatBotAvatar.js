@@ -18,6 +18,9 @@ const ChatBotAvatar = () => {
     'resultados': 'Los resultados de tus exámenes estarán disponibles en tu perfil en un plazo de 48 horas.',
     'tratamiento': 'Cada tratamiento es personalizado. Por favor consulta con tu especialista para más detalles.',
     'gracias': '¡Con gusto! Estoy aquí para ayudarte.',
+    'olvide mi contraseña': 'Puedes restablecer tu contraseña comunicandote con nuestra area de soporte al correo vitaltrack@gmail.com',
+    'contacto': 'Puedes contactarnos al correo vitaltrack@gmail.com o al teléfono 123-456-7890.',
+    'horario de atención': 'Nuestro horario de atención es de lunes a viernes, de 8:00 AM a 6:00 PM.',
   };
 
   const obtenerRespuesta = (pregunta) => {
