@@ -84,6 +84,7 @@ const CancerActual = () => {
     XLSX.writeFile(workbook, "registros.xlsx");
   };
 
+
   const departamentos = [
     'Amazonas', 'Antioquia', 'Arauca', 'Atlántico', 'Bogotá', 'Bolívar', 'Boyacá', 'Caldas', 'Caquetá', 'Casanare', 'Cauca', 'Cesar', 'Chocó', 'Córdoba', 'Cundinamarca', 'Guainía', 'Guaviare', 'Huila', 'La Guajira', 'Magdalena', 'Meta', 'Nariño', 'Norte de Santander', 'Putumayo', 'Quindío', 'Risaralda', 'San Andrés y Providencia', 'Santander', 'Sucre', 'Tolima', 'Valle del Cauca', 'Vaupés', 'Vichada'
   ];
@@ -101,7 +102,7 @@ const CancerActual = () => {
           {showFilters ? '-' : '+'}
         </button>
         <button className={styles.button} onClick={handleSearch}>Buscar</button>
-        <button className={styles.button}>Exportar registros</button>
+        <button className={styles.button} onClick={exportSelected}>Exportar registros</button>
         <button className={styles.button} onClick={() => navigate(-1)}> Regresar </button>
         <button
           className={styles.helpButton}
