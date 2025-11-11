@@ -410,6 +410,7 @@
   height: 35px;
   display: flex;
   align-items: center;
+  margin-top: 35px;
 }
 
 .fileInputLabel:hover {

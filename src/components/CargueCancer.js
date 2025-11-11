@@ -27,40 +27,57 @@ const CargueCancer = () => {
     fetchTodos();
   }, []);
 
-  // 🔹 Obtiene todos los registros desde el backend
-  async function fetchTodos(retryCount = 0) {
-    const url = `${BACKEND_URL}/excelarchivo`;
-    setIsLoading(true);
 
-    try {
-      console.log("Consultando registros desde:", url);
-      const response = await fetch(url);
 
-      const contentType = response.headers.get("content-type") || "";
+// 🔹 Obtiene todos los pacientes desde el backend
+async function fetchTodos(retryCount = 0) {
+  const url = `${BACKEND_URL}/excelarchivo/consulta-general`;
+  setIsLoading(true);
 
-      if (!response.ok || contentType.includes("text/html")) {
-        throw new Error("El backend aún está despertando en Render...");
-      }
+  try {
+    console.log("📡 Consultando pacientes desde:", url);
+    const response = await fetch(url);
+    const contentType = response.headers.get("content-type") || "";
 
-      const data = await response.json();
-      console.log("✅ Datos cargados correctamente:", data);
-      setShowTable(true);
+    if (!response.ok || contentType.includes("text/html")) {
+      throw new Error("El backend aún está despertando en Render...");
+    }
+
+    const data = await response.json();
+    console.log("✅ Datos cargados correctamente:", data);
+
+    // ✅ Si la respuesta tiene pacientes, los usamos
+    let listaPacientes = [];
+
+    if (Array.isArray(data.paciente)) {
+      listaPacientes = data.paciente;
+    } else if (Array.isArray(data.pacientes)) {
+      listaPacientes = data.pacientes;
+    } else if (data.ok && data.data && Array.isArray(data.data)) {
+      listaPacientes = data.data;
+    }
+
+    console.log("📋 Total de pacientes cargados:", listaPacientes.length);
+    setRows(listaPacientes);
+    setShowTable(true);
+    setIsLoading(false);
+    return listaPacientes;
+
+  } catch (error) {
+    console.warn("⚠️ Error cargando pacientes:", error.message);
+
+    if (retryCount < 5) {
+      console.log(`Reintentando conexión (${retryCount + 1}/5)...`);
+      await new Promise((r) => setTimeout(r, 3000));
+      return fetchTodos(retryCount + 1);
+    } else {
+      alert("No fue posible conectar con el servidor. Intenta nuevamente en unos segundos.");
       setIsLoading(false);
-      setRows(Array.isArray(data.data) ? data.data : []);
-      return data;
-    } catch (error) {
-      console.warn("⚠️ Error cargando registros:", error.message);
-
-      if (retryCount < 5) {
-        console.log(`Reintentando conexión (${retryCount + 1}/5)...`);
-        await new Promise((r) => setTimeout(r, 3000));
-        return fetchTodos(retryCount + 1);
-      } else {
-        alert("No fue posible conectar con el servidor. Intenta nuevamente en unos segundos.");
-        setIsLoading(false);
-      }
     }
   }
+}
+
+
 
   const toggleHelpModal = () => {
     if (isHelpModalOpen) {
@@ -264,27 +281,6 @@ const CargueCancer = () => {
           />
           <button className={styles.submitButton1}>Buscar</button>
         </form>
-      </div>
-
-      {/* Filtros */}
-      <div className={styles.filtersContainer}>
-        <button
-          className={styles.filterButton}
-          onClick={() => setShowFilters(!showFilters)}
-          type="button"
-        >
-          {showFilters ? 'Ocultar filtros' : 'Filtros'}
-        </button>
-
-        {showFilters && (
-          <>
-            <input type="text" name="ips" value={filters.ips} onChange={(e) => setFilters({ ...filters, ips: e.target.value })} placeholder="IPS" className={styles.filterInput} />
-            <input type="text" name="cuenta" value={filters.cuenta} onChange={(e) => setFilters({ ...filters, cuenta: e.target.value })} placeholder="Cuenta" className={styles.filterInput} />
-            <input type="text" name="usuario" value={filters.usuario} onChange={(e) => setFilters({ ...filters, usuario: e.target.value })} placeholder="Tipo Usuario" className={styles.filterInput} />
-            <input type="text" name="radicado" value={filters.radicado} onChange={(e) => setFilters({ ...filters, radicado: e.target.value })} placeholder="Radicado" className={styles.filterInput} />
-            <button className={styles.exportButton} onClick={handleExport} type="button">Exportar tabla general</button>
-          </>
-        )}
       </div>
 
       {/* Tabla de Paciente */}
