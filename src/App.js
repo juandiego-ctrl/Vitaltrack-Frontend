@@ -5,22 +5,22 @@ import Login from './components/Login';
 import ForgotPassword from './components/ForgotPassword';
 import RequestUser from './components/RequestUser';
 
-// Layouts separados
+// Layouts
 import MedicoLayout from './components/MedicoLayout';
 import AuxiliarLayout from './components/AuxiliarLayout';
 
-// Componentes de médicos
+// Componentes médicos
 import Home from './components/Home';
 import CargueCancer from './components/CargueCancer';
 import PatientForm from './components/PatientForm';
 import CancerActual from './components/CancerActual';
 import CrearUsuario from './components/CrearUsuario';
+import PacientesDashboard from './components/PacientesDashboard'; // ✅ correcto
 
-// Componentes de auxiliares
+// Componentes auxiliares
 import AgendarCitas from './components/AgendarCitas';
 import Medicamentos from './components/Medicamentos'; 
 import RecordatoriosCitas from './components/RecordatoriosCitas';
-
 
 function App() {
   return (
@@ -40,6 +40,7 @@ function App() {
             <Route path="cancer-actual" element={<CancerActual />} />
             <Route path="cancer-actual/patient" element={<PatientForm />} />
             <Route path="crear-usuario" element={<CrearUsuario />} />
+            <Route path="pacientes" element={<PacientesDashboard />} /> {/* ✅ solo uno */}
           </Route>
 
           {/* Rutas de auxiliares */}

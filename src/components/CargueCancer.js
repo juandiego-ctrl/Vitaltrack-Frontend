@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styles from '../styles/CargueCancer.module.css';
 import { FaQuestionCircle } from 'react-icons/fa';
 import * as XLSX from 'xlsx';
@@ -14,11 +14,53 @@ const CargueCancer = () => {
   const [activeTab, setActiveTab] = useState('Generalidades');
   const [filters, setFilters] = useState({ ips: '', cuenta: '', usuario: '', radicado: '' });
   const [selectedFile, setSelectedFile] = useState(null);
+  const [documento, setDocumento] = useState('');
   const [showFilters, setShowFilters] = useState(false);
-  const [showTable, setShowTable] = useState(false);
-
-  // Filas de la tabla (simuladas o importadas)
   const [rows, setRows] = useState([]);
+  const [showTable, setShowTable] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const BACKEND_URL = "https://vitaltrack-backend-v5el.onrender.com";
+
+  // 🔹 Cargar todos los registros al montar el componente
+  useEffect(() => {
+    fetchTodos();
+  }, []);
+
+  // 🔹 Obtiene todos los registros desde el backend
+  async function fetchTodos(retryCount = 0) {
+    const url = `${BACKEND_URL}/excelarchivo`;
+    setIsLoading(true);
+
+    try {
+      console.log("Consultando registros desde:", url);
+      const response = await fetch(url);
+
+      const contentType = response.headers.get("content-type") || "";
+
+      if (!response.ok || contentType.includes("text/html")) {
+        throw new Error("El backend aún está despertando en Render...");
+      }
+
+      const data = await response.json();
+      console.log("✅ Datos cargados correctamente:", data);
+      setShowTable(true);
+      setIsLoading(false);
+      setRows(Array.isArray(data.data) ? data.data : []);
+      return data;
+    } catch (error) {
+      console.warn("⚠️ Error cargando registros:", error.message);
+
+      if (retryCount < 5) {
+        console.log(`Reintentando conexión (${retryCount + 1}/5)...`);
+        await new Promise((r) => setTimeout(r, 3000));
+        return fetchTodos(retryCount + 1);
+      } else {
+        alert("No fue posible conectar con el servidor. Intenta nuevamente en unos segundos.");
+        setIsLoading(false);
+      }
+    }
+  }
 
   const toggleHelpModal = () => {
     if (isHelpModalOpen) {
@@ -32,85 +74,90 @@ const CargueCancer = () => {
     }
   };
 
-  const handleFilterChange = (e) => {
-    const { name, value } = e.target;
-    setFilters({ ...filters, [name]: value });
-  };
-
   const handleFileSelect = (e) => {
     setSelectedFile(e.target.files[0]);
     alert(`Archivo seleccionado: ${e.target.files[0]?.name}`);
   };
 
-  const handleFileUpload = () => {
-    if (selectedFile) {
-      alert(`Archivo cargado exitosamente: ${selectedFile.name}`);
-    } else {
-      alert('Por favor, seleccione un archivo primero.');
+  // 📤 Cargar archivo Excel al backend
+  const handleFileUpload = async () => {
+    if (!selectedFile) {
+      alert('Por favor, selecciona un archivo Excel antes de cargar.');
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      const formData = new FormData();
+      formData.append('file', selectedFile);
+      formData.append('V6NumId', documento || '0'); // puedes vincular la cédula si se desea
+
+      const response = await fetch(`${BACKEND_URL}/excelarchivo/cargue-general/${documento || 0}`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await response.json();
+      console.log('📤 Respuesta del servidor:', data);
+
+      if (data.ok) {
+        alert('Archivo cargado correctamente.');
+        fetchTodos();
+      } else {
+        alert('Error al cargar el archivo.');
+      }
+    } catch (error) {
+      console.error('❌ Error al cargar el archivo:', error);
+      alert('No se pudo subir el archivo.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const getMockRows = () => ([
-    {
-      id: 1,
-      radicado: '12345',
-      cuenta: 'Cáncer',
-      ips: 'IPS Ejemplo 1',
-      archivo: 'CAC_CUENTA_20250101.xlsx',
-      fecha: '01/01/2025',
-      soportes: 100,
-      cargados: 95,
-      consolidados: 5,
-      estado: 'Exitoso',
-      vigente: 'Sí',
-      usuario: 'Juan Pérez',
-      login: 'juan.perez@ejemplo.com',
-      diligenciados: null,
-      porcentaje: null,
-    },
-    {
-      id: 2,
-      radicado: '67890',
-      cuenta: 'Cáncer',
-      ips: 'IPS Ejemplo 2',
-      archivo: 'CAC_CUENTA_20250103.xlsx',
-      fecha: '03/01/2025',
-      soportes: 80,
-      cargados: 72,
-      consolidados: 8,
-      estado: 'En proceso',
-      vigente: 'Sí',
-      usuario: 'María López',
-      login: 'maria.lopez@ejemplo.com',
-      diligenciados: null,
-      porcentaje: null,
-    },
-    {
-      id: 3,
-      radicado: '11223',
-      cuenta: 'Cáncer',
-      ips: 'IPS Ejemplo 3',
-      archivo: 'CAC_CUENTA_20250105.xlsx',
-      fecha: '05/01/2025',
-      soportes: 60,
-      cargados: 58,
-      consolidados: 2,
-      estado: 'Exitoso',
-      vigente: 'Sí',
-      usuario: 'Carlos Díaz',
-      login: 'carlos.diaz@ejemplo.com',
-      diligenciados: null,
-      porcentaje: null,
-    },
-  ]);
-
-  const handleSearch = (e) => {
+  const handleSearch = async (e) => {
     e.preventDefault();
-    // Simula resultados al buscar
-    setRows(getMockRows());
-    setShowTable(true);
+
+    if (!documento) {
+      alert('Ingrese un número de documento para consultar.');
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      const url = `${BACKEND_URL}/excelarchivo/consulta-general/${documento}`;
+      console.log(`🔍 Consultando documento: ${url}`);
+
+      const response = await fetch(url);
+      const contentType = response.headers.get('content-type') || '';
+      if (contentType.includes('text/html')) {
+        throw new Error('El backend aún está despertando en Render...');
+      }
+
+      if (!response.ok) {
+        throw new Error('No se encontró información para este número de documento.');
+      }
+
+      const data = await response.json();
+      console.log('📊 Datos consultados:', data);
+
+      if (data.ok && Array.isArray(data.paciente)) {
+        setRows(data.paciente);
+        setShowTable(true);
+      } else {
+        alert('No se encontró información de pacientes para este documento.');
+        setRows([]);
+        setShowTable(false);
+      }
+
+    } catch (error) {
+      console.error('❌ Error en búsqueda:', error.message);
+      alert(`Error al consultar: ${error.message}`);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
+  // 🔹 Exportar tabla visible a Excel
   const handleExport = () => {
     const table = document.querySelector('table');
     if (!table) return;
@@ -120,30 +167,14 @@ const CargueCancer = () => {
     saveAs(blob, 'tabla_cargue_cac.xlsx');
   };
 
-  const handleConsultarProgreso = () => {
-    // Si no hay filas (ni tabla), las simulamos y mostramos la tabla
-    if (rows.length === 0) {
-      const base = getMockRows();
-      setRows(base);
-      setShowTable(true);
-    }
-
-    // Genera progreso simulado para cada fila (0..124 -> %)
-    setRows(prev =>
-      prev.map(r => {
-        const diligenciados = Math.floor(Math.random() * (TOTAL_VARIABLES + 1));
-        const porcentaje = Math.round((diligenciados / TOTAL_VARIABLES) * 100);
-        return { ...r, diligenciados, porcentaje };
-      })
-    );
-  };
-
   const renderTabContent = () => {
     if (activeTab === 'Generalidades') {
       return (
         <div>
           <p className={styles.paragraph}>
-            Generalidades de la carga de soportes CAC. En esta opción se detalla el proceso para el reporte de soportes CAC en la plataforma SIGIRES, dirigido tanto a clientes con perfil IPS como clientes con perfil EPS.
+            Generalidades de la carga de soportes CAC. En esta opción se detalla el proceso
+            para el reporte de soportes CAC en la plataforma SIGIRES, dirigido tanto a clientes
+            con perfil IPS como clientes con perfil EPS.
           </p>
         </div>
       );
@@ -170,7 +201,8 @@ const CargueCancer = () => {
     <div className={styles.container}>
       <h1 className={styles.title}>Cargue de soportes CAC</h1>
 
-      {/* Zona de carga */}
+      {isLoading && <div className={styles.loader}>⏳ Conectando con el servidor...</div>}
+
       <div className={styles.buttonsContainer}>
         <div className={styles.leftButtons}>
           <label className={styles.fileInputLabel}>
@@ -178,9 +210,10 @@ const CargueCancer = () => {
             <input type="file" onChange={handleFileSelect} className={styles.fileInput} />
           </label>
           <button className={styles.button1} onClick={handleFileUpload}>Cargar</button>
-          <button className={styles.button1} onClick={handleConsultarProgreso}>Consultar progreso</button>
+          <button className={styles.button1} onClick={fetchTodos}>Consultar progreso</button>
           <button className={styles.button1} onClick={() => navigate(-1)}>Regresar</button>
         </div>
+
         <div className={styles.statusBoxes}>
           <button className={styles.helpButton} onClick={toggleHelpModal}>
             <FaQuestionCircle /> ¿Ayuda?
@@ -188,7 +221,7 @@ const CargueCancer = () => {
         </div>
       </div>
 
-      {/* Modal ayuda */}
+      {/* Modal de ayuda */}
       {isHelpModalOpen && (
         <div className={styles.modalBackdrop} onClick={toggleHelpModal}>
           <div
@@ -218,14 +251,16 @@ const CargueCancer = () => {
         </div>
       )}
 
-      {/* Buscador por documento */}
+      {/* Buscador */}
       <div className={styles.formContainer}>
         <form className={styles.form} onSubmit={handleSearch}>
           <label className={styles.label}>NUMERO DE DOCUMENTO</label>
           <input
             type="text"
             className={styles.input}
-            placeholder="Consulta de paciente, por numero de cedula"
+            placeholder="Consulta de paciente, por número de cédula"
+            value={documento}
+            onChange={(e) => setDocumento(e.target.value)}
           />
           <button className={styles.submitButton1}>Buscar</button>
         </form>
@@ -243,73 +278,46 @@ const CargueCancer = () => {
 
         {showFilters && (
           <>
-            <input type="text" name="ips" value={filters.ips} onChange={handleFilterChange} placeholder="IPS" className={styles.filterInput} />
-            <input type="text" name="cuenta" value={filters.cuenta} onChange={handleFilterChange} placeholder="Cuenta" className={styles.filterInput} />
-            <input type="text" name="usuario" value={filters.usuario} onChange={handleFilterChange} placeholder="Tipo Usuario" className={styles.filterInput} />
-            <input type="text" name="radicado" value={filters.radicado} onChange={handleFilterChange} placeholder="Radicado" className={styles.filterInput} />
+            <input type="text" name="ips" value={filters.ips} onChange={(e) => setFilters({ ...filters, ips: e.target.value })} placeholder="IPS" className={styles.filterInput} />
+            <input type="text" name="cuenta" value={filters.cuenta} onChange={(e) => setFilters({ ...filters, cuenta: e.target.value })} placeholder="Cuenta" className={styles.filterInput} />
+            <input type="text" name="usuario" value={filters.usuario} onChange={(e) => setFilters({ ...filters, usuario: e.target.value })} placeholder="Tipo Usuario" className={styles.filterInput} />
+            <input type="text" name="radicado" value={filters.radicado} onChange={(e) => setFilters({ ...filters, radicado: e.target.value })} placeholder="Radicado" className={styles.filterInput} />
             <button className={styles.exportButton} onClick={handleExport} type="button">Exportar tabla general</button>
           </>
         )}
       </div>
 
-      {/* Tabla */}
+      {/* Tabla de Paciente */}
       {showTable && (
         <div className={styles.tableContainer}>
           <table className={styles.table}>
             <thead>
               <tr>
-                <th>Radicado</th>
-                <th>Cuenta CAC</th>
-                <th>Nombre IPS</th>
-                <th>Nombre archivo</th>
-                <th>Fecha Cargue</th>
-                <th>Soportes procesados</th>
-                <th>Registros Cargados</th>
-                <th>Consolidados</th>
-                <th>Estado</th>
-                <th>Vigente</th>
-                <th>Usuario (progreso)</th>
-                <th>Login</th>
+                <th>#</th>
+                <th>Primer Nombre</th>
+                <th>Segundo Nombre</th>
+                <th>Primer Apellido</th>
+                <th>Segundo Apellido</th>
+                <th>Tipo Documento</th>
+                <th>Número Documento</th>
+                <th>Sexo</th>
+                <th>Teléfono</th>
+                <th>Fecha Nacimiento</th>
               </tr>
             </thead>
             <tbody>
-              {rows.map((r, i) => (
-                <tr key={r.id ?? i} className={styles.fadeInRow} style={{ animationDelay: `${i * 0.06}s` }}>
-                  <td>{r.radicado}</td>
-                  <td>{r.cuenta}</td>
-                  <td>{r.ips}</td>
-                  <td>{r.archivo}</td>
-                  <td>{r.fecha}</td>
-                  <td>{r.soportes}</td>
-                  <td>{r.cargados}</td>
-                  <td>{r.consolidados}</td>
-                  <td>{r.estado}</td>
-                  <td>{r.vigente}</td>
-                  <td>
-                    <div className={styles.userCell}>
-                      <span className={styles.userName}>{r.usuario}</span>
-                      {r.porcentaje == null ? (
-                        <span className={styles.progressPlaceholder}>—</span>
-                      ) : (
-                        <>
-                          <div className={styles.progressWrap}>
-                            <div className={styles.progressTrack}>
-                              <div
-                                className={styles.progressFill}
-                                style={{ width: `${r.porcentaje}%` }}
-                                aria-label={`Progreso ${r.porcentaje}%`}
-                              />
-                            </div>
-                            <span className={styles.progressPct}>{r.porcentaje}%</span>
-                          </div>
-                          <span className={styles.progressMini}>
-                            {r.diligenciados}/{TOTAL_VARIABLES}
-                          </span>
-                        </>
-                      )}
-                    </div>
-                  </td>
-                  <td>{r.login}</td>
+              {rows.map((p, i) => (
+                <tr key={p._id ?? i}>
+                  <td>{i + 1}</td>
+                  <td>{p.V1PrimerNom}</td>
+                  <td>{p.V2SegundoNom}</td>
+                  <td>{p.V3PrimerApe}</td>
+                  <td>{p.V4SegundoApe}</td>
+                  <td>{p.V5TipoID}</td>
+                  <td>{p.V6NumID}</td>
+                  <td>{p.V8Sexo}</td>
+                  <td>{p.V15NumTel}</td>
+                  <td>{new Date(p.V7FecNac).toLocaleDateString()}</td>
                 </tr>
               ))}
             </tbody>

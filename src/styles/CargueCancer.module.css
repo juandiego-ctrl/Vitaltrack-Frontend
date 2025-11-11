@@ -391,3 +391,32 @@
   border-radius: 6px;
 }
 
+.loader {
+  margin: 20px auto;
+  text-align: center;
+  font-size: 16px;
+  color: #007CBE;
+  font-weight: bold;
+}
+
+.fileInputLabel {
+  background-color: #007CBE;
+  color: white;
+  padding: 10px 15px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s;
+  height: 35px;
+  display: flex;
+  align-items: center;
+}
+
+.fileInputLabel:hover {
+  background-color: #4FBEEA;
+}
+
+.fileInput {
+  display: none;
+}
+

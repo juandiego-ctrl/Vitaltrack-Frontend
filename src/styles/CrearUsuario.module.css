@@ -98,3 +98,9 @@ input:focus, select:focus {
   transform: scale(1.02);
 }
 
+.inputError {
+  border: 2px solid red;
+  background-color: #ffe6e6;
+}
+
+
