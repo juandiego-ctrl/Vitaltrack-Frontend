@@ -1,86 +1,326 @@
 // src/components/AgendarCitas.js
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import styles from "../styles/AgendarCitas.module.css";
 
-import "@fullcalendar/common/main.css";
-import "@fullcalendar/daygrid/main.css";
-import "@fullcalendar/timegrid/main.css";
-
 function AgendaCitas() {
-  const medicosDisponibles = ["Dr. Pérez", "Dra. Gómez", "Dr. Ramírez"];
+  const API_BASE_URL = "https://vitaltrack-backend-v5el.onrender.com";
 
   const [form, setForm] = useState({
     paciente: "",
     medico: "",
     fecha: "",
     hora: "",
+    correo: "",
   });
 
-  const handleLogout = () => {
-    localStorage.clear();
-    window.location.href = "/";
-  };
+  const [events, setEvents] = useState([]);
+  const [busqueda, setBusqueda] = useState({ medico: "", fecha: "" });
+  const [horasDisponibles, setHorasDisponibles] = useState([]);
+  const [filtroMedico] = useState("todos");
 
-  const [events, setEvents] = useState([
-    { title: "Dr. Pérez - Cita con Juan", date: "2025-08-20T10:00:00", color: "#007bff" },
-    { title: "Dra. Gómez - Control María", date: "2025-08-21T14:30:00", color: "#28a745" },
-  ]);
+  // Estado para el modal
+  const [modalEditar, setModalEditar] = useState({
+    visible: false,
+    citaId: null,
+    horaActual: "",
+    medico: "",
+    paciente: "",
+  });
 
-  // Colores por médico
+  const medicosDisponibles = ["Dr. Pérez", "Dra. Gómez", "Dr. Ramírez"];
+
   const coloresMedicos = {
     "Dr. Pérez": "#007bff",
     "Dra. Gómez": "#28a745",
     "Dr. Ramírez": "#ff9800",
   };
 
-  const [busqueda, setBusqueda] = useState({ medico: "", fecha: "" });
-  const [horasDisponibles, setHorasDisponibles] = useState([]);
+  // ------------------------------------------------------------------
+  // 1️⃣ Cargar citas reales desde MongoDB
+  // ------------------------------------------------------------------
+  useEffect(() => {
+    const cargarCitas = async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/citas`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
 
-  // Filtro de calendario
-  const [filtroMedico, setFiltroMedico] = useState("todos");
+        console.log("DEBUG: respuesta /citas:", data);
 
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
+        const nombreDisplay = (field) => {
+          if (!field) return "";
+          if (typeof field === "object") {
+            return field.nombre || field.name || field.nombreCompleto || "";
+          }
+          return field;
+        };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+        const eventosMongo = data.map((cita) => {
+          let fechaISO = "";
+          if (!cita.fecha) {
+            fechaISO = new Date().toISOString().slice(0, 10);
+          } else {
+            const f = new Date(cita.fecha);
+            if (!isNaN(f)) {
+              fechaISO = f.toISOString().slice(0, 10);
+            } else {
+              fechaISO = String(cita.fecha).slice(0, 10);
+            }
+          }
 
-    const newEvent = {
-      title: `${form.medico} - Paciente: ${form.paciente}`,
-      date: `${form.fecha}T${form.hora}`,
-      color: coloresMedicos[form.medico] || "#50302c",
+          const hora =
+            cita.horaInicio ||
+            cita.hora ||
+            (cita.horaInicio && cita.horaInicio.substring(0, 5)) ||
+            "09:00";
+
+          const pacienteNombre =
+            nombreDisplay(cita.paciente) ||
+            nombreDisplay(cita.pacienteId) ||
+            nombreDisplay(cita.pacienteId?.nombre) ||
+            nombreDisplay(cita.pacienteNombre) ||
+            "Paciente";
+
+          const medicoNombre =
+            nombreDisplay(cita.medico) ||
+            nombreDisplay(cita.medicoId) ||
+            nombreDisplay(cita.medicoId?.nombre) ||
+            nombreDisplay(cita.medicoNombre) ||
+            "Médico";
+
+          const date = `${fechaISO}T${hora}`;
+
+          return {
+            id: cita._id || `${fechaISO}-${hora}-${Math.random().toString(36).slice(2, 7)}`,
+            title: `${medicoNombre} - ${pacienteNombre}`,
+            date,
+            color: cita.color || "#50302c",
+            extendedProps: {
+              _id: cita._id,
+              citaId: cita._id,
+              horaInicio: hora,
+              fecha: fechaISO,
+              medico: medicoNombre,
+              paciente: pacienteNombre,
+              raw: cita,
+            },
+          };
+        });
+
+        console.log("DEBUG: eventos procesados:", eventosMongo);
+        setEvents(eventosMongo);
+      } catch (err) {
+        console.error("Error cargando citas:", err);
+      }
     };
 
-    setEvents([...events, newEvent]);
+    cargarCitas();
+  }, []);
 
-    alert(
-      `✅ Cita agendada con ${form.medico} para ${form.paciente} el ${form.fecha} a las ${form.hora}`
-    );
+  // ---------------------------------------------------------
+  // 🔥 Editar cita - Abre el modal
+  // ---------------------------------------------------------
+  const editarCita = (eventInfo) => {
+    const citaId = eventInfo.extendedProps?._id || eventInfo.extendedProps?.citaId;
+    const horaActual = eventInfo.extendedProps?.horaInicio || "09:00";
+    const medico = eventInfo.extendedProps?.medico || "";
+    const paciente = eventInfo.extendedProps?.paciente || "";
 
-    setForm({ paciente: "", medico: "", fecha: "", hora: "" });
-  };
+    console.log("DEBUG editarCita - citaId:", citaId);
 
-  const handleBusquedaChange = (e) => {
-    setBusqueda({ ...busqueda, [e.target.name]: e.target.value });
-  };
-
-  const buscarHorasDisponibles = () => {
-    if (!busqueda.medico || !busqueda.fecha) {
-      alert("⚠️ Selecciona un médico y una fecha.");
+    if (!citaId) {
+      alert("❌ Error: No se pudo obtener el ID de la cita");
       return;
     }
 
-    const todasLasHoras = [
+    setModalEditar({
+      visible: true,
+      citaId,
+      horaActual,
+      medico,
+      paciente,
+    });
+  };
+
+  // ---------------------------------------------------------
+  // 💾 Guardar edición desde el modal
+  // ---------------------------------------------------------
+  const guardarEdicion = async () => {
+    const nuevaHora = document.getElementById("nuevaHora").value;
+    
+    if (!nuevaHora) {
+      alert("⚠️ Debes ingresar una hora válida");
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/citas/${modalEditar.citaId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ horaInicio: nuevaHora }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${await response.text()}`);
+      }
+
+      const data = await response.json();
+
+      setEvents((prev) =>
+        prev.map((ev) =>
+          ev.id === modalEditar.citaId
+            ? {
+                ...ev,
+                date: `${data.fecha}T${data.horaInicio}`,
+                title: `${data.medico || ev.extendedProps.medico} - ${data.paciente || ev.extendedProps.paciente}`,
+                extendedProps: {
+                  ...ev.extendedProps,
+                  horaInicio: data.horaInicio,
+                },
+              }
+            : ev
+        )
+      );
+
+      alert("✅ Cita actualizada correctamente");
+      setModalEditar({ visible: false, citaId: null, horaActual: "", medico: "", paciente: "" });
+    } catch (error) {
+      console.error("Error editando cita:", error);
+      alert("❌ No se pudo editar la cita: " + error.message);
+    }
+  };
+
+  // ---------------------------------------------------------
+  // 🔥 Cancelar cita
+  // ---------------------------------------------------------
+  const cancelarCita = async (eventInfo) => {
+    const citaId = eventInfo.extendedProps?._id || eventInfo.extendedProps?.citaId;
+    const tituloEvento = eventInfo.title || "esta cita";
+
+    console.log("DEBUG cancelarCita - citaId:", citaId);
+
+    if (!citaId) {
+      alert("❌ Error: No se pudo obtener el ID de la cita");
+      console.error("Evento completo:", eventInfo);
+      return;
+    }
+
+    const confirmar = window.confirm(
+      `¿Seguro que deseas CANCELAR la cita de ${tituloEvento}?`
+    );
+    if (!confirmar) return;
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/citas/${citaId}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${await response.text()}`);
+      }
+
+      setEvents((prev) => prev.filter((ev) => ev.id !== citaId));
+
+      alert("🗑️ Cita eliminada correctamente");
+    } catch (error) {
+      console.error("Error eliminando cita:", error);
+      alert("❌ No se pudo cancelar la cita: " + error.message);
+    }
+  };
+
+  // ---------------------------------------------------------
+  // 🔥 Al hacer click en evento
+  // ---------------------------------------------------------
+  const handleEventClick = (clickInfo) => {
+    console.log("DEBUG handleEventClick - clickInfo:", clickInfo);
+
+    const opcion = prompt(
+      "Seleccione una opción:\n1 - Editar cita\n2 - Cancelar cita\n\nIngrese número:"
+    );
+
+    if (opcion === "1") {
+      editarCita({
+        extendedProps: clickInfo.event.extendedProps,
+        title: clickInfo.event.title,
+      });
+    } else if (opcion === "2") {
+      cancelarCita({
+        extendedProps: clickInfo.event.extendedProps,
+        title: clickInfo.event.title,
+      });
+    }
+  };
+
+  // ------------------------------------------------------------------
+  // 2️⃣ Guardar nueva cita en MongoDB
+  // ------------------------------------------------------------------
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    const nuevaCita = {
+      pacienteId: form.paciente,
+      medicoId: form.medico,
+      fecha: form.fecha,
+      horaInicio: form.hora,
+      horaFin: form.hora,
+      motivo: "Consulta médica",
+      correoPaciente: form.correo,
+    };
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/citas`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(nuevaCita),
+      });
+
+      const data = await response.json();
+
+      setEvents([
+        ...events,
+        {
+          id: data._id,
+          title: `${data.medicoId} - Paciente: ${data.pacienteId}`,
+          date: `${data.fecha}T${data.horaInicio}`,
+          color: coloresMedicos[data.medicoId] || "#50302c",
+          extendedProps: {
+            _id: data._id,
+            citaId: data._id,
+            horaInicio: data.horaInicio,
+            fecha: data.fecha,
+            medico: data.medicoId,
+            paciente: data.pacienteId,
+          },
+        },
+      ]);
+
+      alert("✅ Cita guardada");
+
+      setForm({ paciente: "", medico: "", fecha: "", hora: "" });
+    } catch (error) {
+      console.error("Error:", error);
+      alert("❌ No se pudo guardar la cita");
+    }
+  };
+
+  // ------------------------------------------------------------------
+  // 3️⃣ Buscar horas disponibles
+  // ------------------------------------------------------------------
+  const buscarHorasDisponibles = () => {
+    if (!busqueda.medico || !busqueda.fecha) {
+      alert("Selecciona médico y fecha");
+      return;
+    }
+
+    const horasBase = [
       "09:00",
       "10:00",
       "11:00",
       "12:00",
-      "13:00",
       "14:00",
       "15:00",
       "16:00",
@@ -92,22 +332,27 @@ function AgendaCitas() {
           ev.title.includes(busqueda.medico) &&
           ev.date.startsWith(busqueda.fecha)
       )
-      .map((ev) => ev.date.split("T")[1].substring(0, 5));
+      .map((e) => e.date.split("T")[1].substring(0, 5));
 
-    const disponibles = todasLasHoras.filter((hora) => !ocupadas.includes(hora));
+    const libres = horasBase.filter((h) => !ocupadas.includes(h));
 
-    setHorasDisponibles(disponibles);
+    setHorasDisponibles(libres);
 
-    // Auto-rellena médico y fecha en el formulario
-    setForm((prev) => ({ ...prev, medico: busqueda.medico, fecha: busqueda.fecha }));
+    setForm((prev) => ({
+      ...prev,
+      medico: busqueda.medico,
+      fecha: busqueda.fecha,
+    }));
   };
 
-  // Cuando se selecciona una hora disponible
-  const seleccionarHora = (hora) => {
-    setForm((prev) => ({ ...prev, hora }));
-  };
+  const seleccionarHora = (hora) => setForm((prev) => ({ ...prev, hora }));
 
-  // 🔥 Aquí cambiamos: ahora oculta eventos de otros médicos
+  const handleChange = (e) =>
+    setForm({ ...form, [e.target.name]: e.target.value });
+
+  const handleBusquedaChange = (e) =>
+    setBusqueda({ ...busqueda, [e.target.name]: e.target.value });
+
   const eventosFiltrados =
     filtroMedico === "todos"
       ? events
@@ -117,105 +362,144 @@ function AgendaCitas() {
     <div className={styles.agendaContainer}>
       <h2 className={styles.agendaTitle}>📅 Agendamiento de Citas</h2>
 
+      {/* 🎨 Modal para editar */}
+      {modalEditar.visible && (
+        <div className={styles.modalOverlay} onClick={() => setModalEditar({ ...modalEditar, visible: false })}>
+          <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.modalHeader}>
+              <h3>✏️ Editar Cita</h3>
+              <button 
+                className={styles.modalClose}
+                onClick={() => setModalEditar({ ...modalEditar, visible: false })}
+              >
+                ✕
+              </button>
+            </div>
+            
+            <div className={styles.modalBody}>
+              <div className={styles.modalInfo}>
+                <p><strong>👨‍⚕️ Médico:</strong> {modalEditar.medico}</p>
+                <p><strong>👤 Paciente:</strong> {modalEditar.paciente}</p>
+                <p><strong>🕐 Hora actual:</strong> {modalEditar.horaActual}</p>
+              </div>
+
+              <label className={styles.modalLabel}>Nueva hora:</label>
+              <input
+                id="nuevaHora"
+                type="time"
+                defaultValue={modalEditar.horaActual}
+                className={styles.modalInput}
+              />
+            </div>
+
+            <div className={styles.modalFooter}>
+              <button 
+                className={styles.modalBtnCancel}
+                onClick={() => setModalEditar({ ...modalEditar, visible: false })}
+              >
+                Cancelar
+              </button>
+              <button 
+                className={styles.modalBtnSave}
+                onClick={guardarEdicion}
+              >
+                💾 Guardar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div style={{ display: "flex", gap: "30px", justifyContent: "center" }}>
-        {/* Formulario Izquierdo */}
+        {/* Formulario */}
         <form onSubmit={handleSubmit} className={styles.agendaForm}>
-          <div className="mb-3">
-            <label className="form-label">Paciente:</label>
-            <input
-              type="text"
-              className="form-control"
-              name="paciente"
-              value={form.paciente}
-              onChange={handleChange}
-              required
-            />
-          </div>
+          <label>Paciente:</label>
+          <input
+            type="text"
+            name="paciente"
+            className="form-control"
+            value={form.paciente}
+            onChange={handleChange}
+            required
+          />
 
-          <div className="mb-3">
-            <label className="form-label">Médico:</label>
-            <select
-              className="form-control"
-              name="medico"
-              value={form.medico}
-              onChange={handleChange}
-              required
-            >
-              <option value="">-- Selecciona un médico --</option>
-              {medicosDisponibles.map((med, idx) => (
-                <option key={idx} value={med}>
-                  {med}
-                </option>
-              ))}
-            </select>
-          </div>
+          <label>Médico:</label>
+          <select
+            name="medico"
+            className="form-control"
+            value={form.medico}
+            onChange={handleChange}
+            required
+          >
+            <option value="">-- Selecciona --</option>
+            {medicosDisponibles.map((m, idx) => (
+              <option key={idx} value={m}>
+                {m}
+              </option>
+            ))}
+          </select>
 
-          <div className="mb-3">
-            <label className="form-label">Fecha:</label>
-            <input
-              type="date"
-              className="form-control"
-              name="fecha"
-              value={form.fecha}
-              onChange={handleChange}
-              required
-            />
-          </div>
+          <label>Fecha:</label>
+          <input
+            type="date"
+            name="fecha"
+            className="form-control"
+            value={form.fecha}
+            onChange={handleChange}
+            required
+          />
 
-          <div className="mb-3">
-            <label className="form-label">Hora:</label>
-            <input
-              type="time"
-              className="form-control"
-              name="hora"
-              value={form.hora}
-              onChange={handleChange}
-              required
-            />
-          </div>
+          <label>Hora:</label>
+          <input
+            type="time"
+            name="hora"
+            className="form-control"
+            value={form.hora}
+            onChange={handleChange}
+            required
+          />
 
-          <button type="submit" className={styles.agendarBtn}>
-            Agendar
-          </button>
+          <label>Correo del paciente:</label>
+          <input
+            type="email"
+            name="correo"
+            className="form-control"
+            placeholder="paciente@gmail.com"
+            value={form.correo || ""}
+            onChange={handleChange}
+            required
+          />
 
-          <button onClick={handleLogout} className={styles.logoutBtn}>
-            Cerrar Sesión
-          </button>
+          <button className={styles.agendarBtn}>Agendar</button>
         </form>
 
-        {/* Buscador Derecho */}
+        {/* Buscador horas */}
         <div className={styles.agendaForm}>
-          <h4 className="text-center mb-3">🔎 Buscar Horas Disponibles</h4>
+          <h4>Buscar horas disponibles</h4>
 
-          <div className="mb-3">
-            <label className="form-label">Médico:</label>
-            <select
-              className="form-control"
-              name="medico"
-              value={busqueda.medico}
-              onChange={handleBusquedaChange}
-              required
-            >
-              <option value="">-- Selecciona un médico --</option>
-              {medicosDisponibles.map((med, idx) => (
-                <option key={idx} value={med}>
-                  {med}
-                </option>
-              ))}
-            </select>
-          </div>
+          <label>Médico:</label>
+          <select
+            name="medico"
+            className="form-control"
+            value={busqueda.medico}
+            onChange={handleBusquedaChange}
+          >
+            <option value="">-- Selecciona --</option>
+            {medicosDisponibles.map((m, idx) => (
+              <option key={idx} value={m}>
+                {m}
+              </option>
+            ))}
+          </select>
 
-          <div className="mb-3">
-            <label className="form-label">Fecha:</label>
-            <input
-              type="date"
-              className="form-control"
-              name="fecha"
-              value={busqueda.fecha}
-              onChange={handleBusquedaChange}
-              required
-            />
-          </div>
+          <label>Fecha:</label>
+          <input
+            type="date"
+            name="fecha"
+            className="form-control"
+            value={busqueda.fecha}
+            onChange={handleBusquedaChange}
+          />
 
           <button
             type="button"
@@ -225,48 +509,18 @@ function AgendaCitas() {
             Consultar
           </button>
 
-          {/* Resultados */}
-          <div className="mt-3">
-            <h5>Horas disponibles:</h5>
-            {horasDisponibles.length > 0 ? (
-              <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
-                {horasDisponibles.map((hora, idx) => (
-                  <button
-                    key={idx}
-                    type="button"
-                    className={styles.horaBtn}
-                    onClick={() => seleccionarHora(hora)}
-                  >
-                    {hora}
-                  </button>
-                ))}
-              </div>
-            ) : (
-              <p className="text-muted">No hay horarios disponibles.</p>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Filtro de Médicos para el Calendario */}
-      <div
-        className={styles.calendarFilter}
-        style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10, margin: "20px 0" }}
-      >
-        <label>👨‍⚕️ Filtrar por médico: </label>
-        <select
-          value={filtroMedico}
-          onChange={(e) => setFiltroMedico(e.target.value)}
-          className="form-control"
-          style={{ maxWidth: 250 }}
-        >
-          <option value="todos">Todos</option>
-          {medicosDisponibles.map((med, idx) => (
-            <option key={idx} value={med}>
-              {med}
-            </option>
+          <h5>Horas disponibles:</h5>
+          {horasDisponibles.map((h, idx) => (
+            <button
+              key={idx}
+              type="button"
+              className={styles.horaBtn}
+              onClick={() => seleccionarHora(h)}
+            >
+              {h}
+            </button>
           ))}
-        </select>
+        </div>
       </div>
 
       {/* Calendario */}
@@ -280,6 +534,7 @@ function AgendaCitas() {
             right: "dayGridMonth,timeGridWeek,timeGridDay",
           }}
           events={eventosFiltrados}
+          eventClick={handleEventClick}
           height="600px"
         />
       </div>

@@ -1,325 +1,252 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom'; // Para navegación
+import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import styles from '../styles/CancerActual.module.css';
-import * as XLSX from "xlsx";
+import ModalPaciente from './ModalPaciente';
 
-const CancerActual = () => {
-  const [showFilters, setShowFilters] = useState(false);
-  const [searchResults, setSearchResults] = useState([]);
-  const navigate = useNavigate(); // Hook para navegar entre páginas
-  const [selectedRecords, setSelectedRecords] = useState([]);
+const API_BASE_URL = "https://vitaltrack-backend-v5el.onrender.com";
 
-  const toggleFilters = () => {
-    setShowFilters(!showFilters);
+const PacienteCRUD = () => {
+  const [rows, setRows] = useState([]);
+  const [selectedId, setSelectedId] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const cedulaRef = useRef(null);
+  const navigate = useNavigate();
+
+  // ======================================================
+  // 🔄 CARGAR TODOS LOS PACIENTES AL INICIAR
+  // ======================================================
+  useEffect(() => {
+    fetchTodos();
+  }, []);
+
+  // ======================================================
+  // 🔵 CONSULTAR TODOS LOS PACIENTES
+  // ======================================================
+  const fetchTodos = async (retries = 0) => {
+    setIsLoading(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/excelarchivo/consulta-general`);
+      const type = res.headers.get("content-type") || "";
+
+      if (!res.ok || type.includes("text/html"))
+        throw new Error("Backend despertando...");
+
+      const data = await res.json();
+
+      // Manejo de diferentes estructuras de respuesta
+      let listaPacientes = [];
+      if (Array.isArray(data.paciente)) {
+        listaPacientes = data.paciente;
+      } else if (Array.isArray(data.pacientes)) {
+        listaPacientes = data.pacientes;
+      } else if (data.ok && data.data && Array.isArray(data.data)) {
+        listaPacientes = data.data;
+      }
+
+      console.log(`✅ ${listaPacientes.length} pacientes cargados`);
+      setRows(listaPacientes);
+    } catch (err) {
+      if (retries < 5) {
+        console.log(`⚠️ Reintentando cargar pacientes (${retries + 1}/5)...`);
+        await new Promise(r => setTimeout(r, 3000));
+        return fetchTodos(retries + 1);
+      }
+      alert("No se pudo cargar la lista de pacientes.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleSearch = () => {
-    // Datos ficticios de ejemplo para la tabla
-    const exampleData = [
-      {
-        id: 1,
-        firstName: "Juan",
-        lastName: "Pérez",
-        idType: "CC",
-        idNumber: "123456789",
-        birthDate: "1980-01-01",
-        gender: "M",
-        cieCode: "C500",
-        cieGroup: "CAC Mama",
-        creationMethod: "Formulario",
-        recordValidation: "Validado",
-        supports: "Completos",
-        createdBy: "admin1",
-        lastModifiedBy: "user2",
-        canceled: "No",
-        state: "Bloqueado",
-        alertsCount: 2,
-      },
-      {
-        id: 2,
-        firstName: "María",
-        lastName: "Gómez",
-        idType: "TI",
-        idNumber: "987654321",
-        birthDate: "1995-07-15",
-        gender: "F",
-        cieCode: "C501",
-        cieGroup: "CAC Cérvix",
-        creationMethod: "Carga masiva",
-        recordValidation: "Sin validar",
-        supports: "Sin soportes",
-        createdBy: "admin2",
-        lastModifiedBy: "user3",
-        canceled: "Sí",
-        state: "Desbloqueado",
-        alertsCount: 1,
-      },
-    ];
+  // ======================================================
+  // 🔵 CONSULTAR POR CÉDULA
+  // ======================================================
+  const fetchByCedula = async (cedula, retries = 0) => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/excelarchivo/consulta-general/${cedula}`);
+      const type = res.headers.get("content-type") || "";
 
-    setSearchResults(exampleData); // Agregamos los resultados simulados
-  };
-  
-  const handleDoubleClick = () => {
-    navigate('/home/cancer-actual/patient/');
-  };
-    // 👇 seleccionar/desmarcar registros
-  const toggleSelect = (id) => {
-    setSelectedRecords((prev) =>
-      prev.includes(id) ? prev.filter(r => r !== id) : [...prev, id]
-    );
+      // Si es 404, el paciente no existe (no reintentar)
+      if (res.status === 404) {
+        alert(`No se encontró ningún paciente con la cédula: ${cedula}`);
+        setRows([]);
+        return;
+      }
+
+      // Si el backend está dormido o hay error del servidor, reintentar
+      if (!res.ok || type.includes("text/html")) {
+        throw new Error("Backend despertando o error del servidor...");
+      }
+
+      const data = await res.json();
+
+      if (data.ok && Array.isArray(data.paciente) && data.paciente.length > 0) {
+        setRows(data.paciente);
+      } else {
+        alert(`No se encontró información para la cédula: ${cedula}`);
+        setRows([]);
+      }
+    } catch (err) {
+      if (retries < 5) {
+        console.log(`⚠️ Reintentando búsqueda (${retries + 1}/5)...`);
+        await new Promise(r => setTimeout(r, 3000));
+        return fetchByCedula(cedula, retries + 1);
+      }
+      alert("Error al consultar paciente. Intenta nuevamente.");
+    }
   };
 
-  // 👇 exportar seleccionados a Excel
-  const exportSelected = () => {
-    const dataToExport = searchResults.filter(r => selectedRecords.includes(r.id));
+  // ======================================================
+  // 🔍 BOTÓN BUSCAR
+  // ======================================================
+  const handleSearch = (e) => {
+    if (e) e.preventDefault(); // Prevenir recarga de página
+    const cedula = cedulaRef.current.value.trim();
+    if (!cedula) return fetchTodos();
+    fetchByCedula(cedula);
+  };
 
-    if (dataToExport.length === 0) {
-      alert("Por favor selecciona al menos un registro.");
+  // ======================================================
+  // 📝 ABRIR MODAL DE EDICIÓN
+  // ======================================================
+  const abrirEdicion = (cedula) => {
+    if (!cedula) {
+      alert('No se pudo obtener el número de documento del paciente.');
       return;
     }
-
-    const worksheet = XLSX.utils.json_to_sheet(dataToExport);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Registros");
-    XLSX.writeFile(workbook, "registros.xlsx");
+    console.log('✅ Abriendo modal para documento:', cedula);
+    setSelectedId(cedula);
   };
 
+  // ======================================================
+  // ❌ ELIMINAR
+  // ======================================================
+  const eliminar = async (cedula) => {
+    if (!window.confirm("¿Eliminar este paciente?")) return;
 
-  const departamentos = [
-    'Amazonas', 'Antioquia', 'Arauca', 'Atlántico', 'Bogotá', 'Bolívar', 'Boyacá', 'Caldas', 'Caquetá', 'Casanare', 'Cauca', 'Cesar', 'Chocó', 'Córdoba', 'Cundinamarca', 'Guainía', 'Guaviare', 'Huila', 'La Guajira', 'Magdalena', 'Meta', 'Nariño', 'Norte de Santander', 'Putumayo', 'Quindío', 'Risaralda', 'San Andrés y Providencia', 'Santander', 'Sucre', 'Tolima', 'Valle del Cauca', 'Vaupés', 'Vichada'
-  ];
+    try {
+      const res = await fetch(`${API_BASE_URL}/paciente/${cedula}`, {
+        method: "DELETE"
+      });
 
-  const municipios = [
-    'Bogotá', 'Medellín', 'Cali', 'Barranquilla', 'Cartagena', 'Cúcuta', 'Bucaramanga', 'Pereira', 'Manizales', 'Ibagué', 'Santa Marta', 'Soledad', 'Villavicencio', 'Armenia', 'Montería', 'Valledupar', 'Pasto', 'Buenaventura', 'Neiva', 'Sincelejo'
-  ];
+      const data = await res.json();
 
+      if (data.ok) {
+        alert("Paciente eliminado correctamente.");
+        handleSearch();
+      } else {
+        alert("Error al eliminar.");
+      }
+    } catch (err) {
+      alert("Error al eliminar.");
+    }
+  };
+
+  // ======================================================
+  // 🖥 RENDER
+  // ======================================================
   return (
     <div className={styles.container}>
-      <h1 className={styles.title}>Cáncer Actual</h1>
+      <h1>CRUD Pacientes — CAC</h1>
 
-      <div className={styles.buttonsContainer}>
-        <button className={styles.filterButton} onClick={toggleFilters}>
-          {showFilters ? '-' : '+'}
-        </button>
-        <button className={styles.button} onClick={handleSearch}>Buscar</button>
-        <button className={styles.button} onClick={exportSelected}>Exportar registros</button>
-        <button className={styles.button} onClick={() => navigate(-1)}> Regresar </button>
-        <button
-          className={styles.helpButton}
-          onClick={() => window.open('https://procex.co/archivos/manuales/CAC/MODULO/CAC_CANCER_MODULO.pdf', '_blank')}
-        >
-          Ayuda
-        </button>
+      {isLoading && <div style={{ textAlign: 'center', padding: '20px' }}>⏳ Cargando...</div>}
+
+      <div className={styles.searchContainer}>
+        <form onSubmit={handleSearch} style={{ display: 'inline-flex', gap: '10px' }}>
+          <input
+            ref={cedulaRef}
+            placeholder="Buscar por cédula"
+            className={styles.input}
+          />
+          <button type="submit" className={styles.button}>🔍 Buscar</button>
+        </form>
+        <button onClick={fetchTodos} className={styles.button}>🔄 Ver Todos</button>
+        <button onClick={() => navigate(-1)} className={styles.button}>⬅️ Regresar</button>
       </div>
 
-      {showFilters && (
-        <div className={styles.filtersContainer}>
-          <div className={styles.filterRow}>
-            <label>5. Tipo de Identificación del usuario:</label>
-            <select className={styles.input}>
-              <option>Seleccionar</option>
-              <option>RC. Registro Civil</option>
-              <option>TI. Tarjeta de Identidad</option>
-              <option>CC. Cédula de Ciudadanía</option>
-              <option>CE. Cédula de Extranjería</option>
-              <option>PA. Pasaporte</option>
-              <option>MS. Menor sin Identificación</option>
-              <option>AS. Adulto sin Identificación</option>
-              <option>CD. Carnet Diplomático</option>
-              <option>SC. Salvoconducto de permanencia</option>
-              <option>PE. Permiso Especial</option>
-              <option>PT. Permiso por Protección temporal</option>
-              <option>SI. Sin Identifición</option>
-            </select>
-
-            <label>6. Número de Identificación del paciente:</label>
-            <input type="text" className={styles.input} />
-
-            <label>17. Código CIE-10:</label>
-            <input type="text" className={styles.input} />
-          </div>
-
-          <div className={styles.filterRow}>
-            <label>Agrupador:</label>
-            <select className={styles.input}>
-              <option>Seleccionar</option>
-              <option>1. CAC Mama</option>
-              <option>2. CAC Próstata</option>
-              <option>3. CAC Cérvix</option>
-              <option>4. CAC Colorectal</option>
-              <option>5. CAC Estómago</option>
-              <option>6. CAC Melanoma</option>
-              <option>7. CAC Pulmón</option>
-              <option>8. CAC Linfoma Hodgkin</option>
-              <option>9. CAC Linfoma No Hodgkin</option>
-              <option>10. CAC Leucemia Linfocitica Aguda</option>
-              <option>11. CAC Leucemia Mielocitica Aguda</option>
-              <option>12. Labio, cavidad bucal y faringe</option>
-              <option>13. Otros órganos digestivos</option>
-              <option>14. Otros órganos respiratorios e intratorácicos</option>
-              <option>15. Huesos y cartílagos articulares</option>
-              <option>16. Otros tumores de la piel</option>
-              <option>17. Tejidos mesoteliales y blandos</option>
-              <option>18. Otros órganos genitales femeninos</option>
-              <option>19. Otros órganos genitales masculinos</option>
-              <option>20. Vías urinarias</option>
-              <option>21. Ojo, encéfalo, y sistema nervioso</option>
-              <option>22. Glándulas tiroides y endocrinas</option>
-              <option>23. Otros sitios</option>
-              <option>24. Tumores del tejido linfático</option>
-              <option>25. Tumores secundarios</option>
-            </select>
-
-            <label>Soportes:</label>
-            <select className={styles.input}>
-              <option>Seleccionar</option>
-              <option>1. Sin soportes</option>
-              <option>2. Soportes incompletos</option>
-              <option>3. Soportes completos</option>
-            </select>
-
-            <label>Validación registro:</label>
-            <select className={styles.input}>
-              <option>Seleccionar</option>
-              <option>S. Registro validado</option>
-              <option>N. Sin validar</option>
-              <option>V. Sin validar por validación masiva</option>
-            </select>
-          </div>
-
-          <div className={styles.filterRow}>
-            <label>Categorización:</label>
-            <select className={styles.input}>
-              <option>Seleccionar</option>
-              <option>1. Incidente</option>
-              <option>2. Prevalente</option>
-            </select>
-
-            <label>Usuario creación:</label>
-            <input type="text" className={styles.input} />
-
-            <label>Usuario última modificación:</label>
-            <input type="text" className={styles.input} />
-
-            <label>Anulado:</label>
-            <select className={styles.input}>
-              <option>Seleccionar</option>
-              <option>Todos</option>
-              <option>Si</option>
-              <option>No</option>
-            </select>
-          </div>
-
-          <div className={styles.filterRow}>
-            <label>Método creación:</label>
-            <select className={styles.input}>
-              <option>Seleccionar</option>
-              <option>Formulario</option>
-              <option>Carga masiva</option>
-            </select>
-            <label>Radicado:</label>
-            <input type="text" className={styles.input} />
-
-            <label>Estado:</label>
-            <select className={styles.input}>
-              <option>Seleccionar</option>
-              <option>Bloqueado</option>
-              <option>Desbloqueado</option>
-            </select>
-          </div>
-
-          <div className={styles.filterRow}>
-            <label>Nautcli:</label>
-            <input type="text" className={styles.input} />
-
-            <label>Alertas:</label>
-            <select className={styles.input}>
-              <option>Seleccionar</option>
-              <option>1. Pendiente</option>
-              <option>2. Aceptado</option>
-              <option>3. Rechazado</option>
-            </select>
-
-            <label>Regional:</label>
-            <input type="text" className={styles.input} />
-
-            <label>Departamento:</label>
-            <select className={styles.input}>
-              {departamentos.map((dpto, index) => (
-                <option key={index}>{dpto}</option>
-              ))}
-            </select>
-
-            <label>Municipio:</label>
-            <select className={styles.input}>
-              {municipios.map((muni, index) => (
-                <option key={index}>{muni}</option>
-              ))}
-            </select>
-          </div>
+      {rows.length > 0 && (
+        <div style={{ marginBottom: '15px', padding: '10px', backgroundColor: '#e7f3ff', borderRadius: '6px' }}>
+          <strong>Total de pacientes encontrados:</strong> {rows.length}
         </div>
       )}
-            {/* Tabla de resultados */}
-            {searchResults.length > 0 && (
-        <div className={styles.resultsContainer}>
-          <table className={styles.resultsTable}>
-            <thead>
-              <tr>
-                <th>Seleccionar</th>
-                <th>ID Único</th>
-                <th>1. Primer nombre</th>
-                <th>3. Primer apellido</th>
-                <th>5. Tipo de identificación</th>
-                <th>6. Número de identificación</th>
-                <th>7. Fecha de nacimiento</th>
-                <th>8. Sexo</th>
-                <th>17. Código CIE-10</th>
-                <th>Agrupador CIE-10</th>
-                <th>Método de creación</th>
-                <th>Validación registro</th>
-                <th>Soportes</th>
-                <th>Usuario creación</th>
-                <th>Usuario última modificación</th>
-                <th>Anulado</th>
-                <th>Estado</th>
-                <th>Cantidad alertas</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {searchResults.map((result) => (
-                <tr key={result.id} onDoubleClick={handleDoubleClick}>
-                  <td><input type="checkbox" checked={selectedRecords.includes(result.id)} onChange={() => toggleSelect(result.id)}/></td>
-                  <td>{result.id}</td>
-                  <td>{result.firstName}</td>
-                  <td>{result.lastName}</td>
-                  <td>{result.idType}</td>
-                  <td>{result.idNumber}</td>
-                  <td>{result.birthDate}</td>
-                  <td>{result.gender}</td>
-                  <td>{result.cieCode}</td>
-                  <td>{result.cieGroup}</td>
-                  <td>{result.creationMethod}</td>
-                  <td>{result.recordValidation}</td>
-                  <td>{result.supports}</td>
-                  <td>{result.createdBy}</td>
-                  <td>{result.lastModifiedBy}</td>
-                  <td>{result.canceled}</td>
-                  <td>{result.state}</td>
-                  <td>{result.alertsCount}</td>
-                    <td>
-                      <button onClick={() => alert("Editar " + result.id)} style={{ textDecoration: "underline",  color:"blue"}}>
-                        EDITAR
-                      </button>
-                    </td>
+
+      {rows.length > 0 ? (
+        <table className={styles.resultsTable}>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Primer Nombre</th>
+              <th>Segundo Nombre</th>
+              <th>Primer Apellido</th>
+              <th>Tipo ID</th>
+              <th>Cédula</th>
+              <th>Sexo</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {rows.map((p, i) => {
+              // Debug: asegurarnos de que tenemos el documento correcto
+              const documento = p.V6NumID || p.V6NumId || p.documento || '';
+              
+              return (
+                <tr key={i}>
+                  <td>{i + 1}</td>
+                  <td>{p.V1PrimerNom}</td>
+                  <td>{p.V2SegundoNom}</td>
+                  <td>{p.V3PrimerApe}</td>
+                  <td>{p.V5TipoID}</td>
+                  <td>{documento}</td>
+                  <td>{p.V8Sexo}</td>
+
+                  <td>
+                    <button
+                      onClick={() => {
+                        console.log('📝 Editando paciente:', documento);
+                        console.log('📋 Objeto completo:', p);
+                        abrirEdicion(documento);
+                      }}
+                      style={{ color: 'blue', cursor: 'pointer' }}
+                      disabled={!documento}
+                    >
+                      Editar
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        console.log('🗑️ Eliminando paciente:', documento);
+                        eliminar(documento);
+                      }}
+                      style={{ color: 'red', marginLeft: 10, cursor: 'pointer' }}
+                      disabled={!documento}
+                    >
+                      Eliminar
+                    </button>
+                  </td>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              );
+            })}
+          </tbody>
+        </table>
+      ) : (
+        !isLoading && (
+          <div style={{ textAlign: 'center', padding: '40px', backgroundColor: '#f8f9fa', borderRadius: '8px', marginTop: '20px' }}>
+            <p style={{ fontSize: '18px', color: '#666', margin: 0 }}>
+              📋 No hay pacientes para mostrar. Realiza una búsqueda o espera a que carguen los datos.
+            </p>
+          </div>
+        )
+      )}
+
+      {/* MODAL */}
+      {selectedId && (
+        <ModalPaciente
+          documento={selectedId}
+          onClose={() => setSelectedId(null)}
+        />
       )}
     </div>
   );
 };
 
-export default CancerActual;
+export default PacienteCRUD;

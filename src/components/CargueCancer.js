@@ -77,8 +77,6 @@ async function fetchTodos(retryCount = 0) {
   }
 }
 
-
-
   const toggleHelpModal = () => {
     if (isHelpModalOpen) {
       setIsExiting(true);
@@ -227,7 +225,6 @@ async function fetchTodos(retryCount = 0) {
             <input type="file" onChange={handleFileSelect} className={styles.fileInput} />
           </label>
           <button className={styles.button1} onClick={handleFileUpload}>Cargar</button>
-          <button className={styles.button1} onClick={fetchTodos}>Consultar progreso</button>
           <button className={styles.button1} onClick={() => navigate(-1)}>Regresar</button>
         </div>
 

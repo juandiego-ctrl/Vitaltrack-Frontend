@@ -1,5 +1,6 @@
-import React, { useState } from "react";
 import styles from "../styles/Medicamentos.module.css";
+import React, { useState } from "react";
+
 
 function Medicamentos() {
   const [form, setForm] = useState({
@@ -9,6 +10,7 @@ function Medicamentos() {
     fechaInicio: "",
     fechaFin: "",
     telefono: "",
+    correo: "",
   });
 
   const [lista, setLista] = useState([]);
@@ -17,24 +19,39 @@ function Medicamentos() {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Guardamos en la lista local
-    setLista([...lista, form]);
+    try {
+      const res = await fetch("https://vitaltrack-backend-v5el.onrender.com/medicamentos", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
 
-    alert(`✅ Se registró el medicamento para ${form.paciente}`);
+      if (!res.ok) throw new Error("Error al guardar");
 
-    // Reiniciar formulario
-    setForm({
-      paciente: "",
-      medicamento: "",
-      frecuencia: "",
-      fechaInicio: "",
-      fechaFin: "",
-      telefono: "",
-    });
+      alert(`✅ Medicamento registrado y recordatorios activados para ${form.paciente}`);
+      
+      // Opcional: agregar localmente también
+      setLista([...lista, form]);
+
+      // Reiniciar formulario
+      setForm({
+        paciente: "",
+        medicamento: "",
+        frecuencia: "",
+        fechaInicio: "",
+        fechaFin: "",
+        telefono: "",
+        correo: "",
+      });
+    } catch (error) {
+      console.error(error);
+      alert("❌ Error al guardar medicamento");
+    }
   };
+
 
   return (
     <div className={styles.medicamentosContainer}>
@@ -116,6 +133,19 @@ function Medicamentos() {
             value={form.telefono}
             onChange={handleChange}
             placeholder="+573001234567"
+            required
+          />
+        </div>
+
+        <div className="mb-3">
+          <label className="form-label">Correo del paciente:</label>
+          <input
+            type="email"
+            className="form-control"
+            name="correo"
+            value={form.correo}
+            onChange={handleChange}
+            placeholder="correo@ejemplo.com"
             required
           />
         </div>

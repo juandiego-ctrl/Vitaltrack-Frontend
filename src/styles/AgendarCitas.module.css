@@ -1,12 +1,12 @@
 /* Contenedor general */
 .agendaContainer {
   display: flex;
-  flex-direction: column;   /* primero uno debajo del otro */
-  align-items: center;      /* 👈 centra horizontalmente */
-  justify-content: center;  /* 👈 centra verticalmente si le das altura */
-  min-height: 100vh;        /* ocupa toda la pantalla */
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
   padding: 2rem;
-  background-color: #f5f6fa; /* opcional */
+  background-color: #f5f6fa;
 }
 
 /* Título */
@@ -33,11 +33,10 @@
   border-radius: 2px;
 }
 
-
 /* Formulario */
 .agendaForm {
   width: 100%;
-  max-width: 400px;         /* tamaño fijo centrado */
+  max-width: 400px;
   background: #f8f9fa;
   padding: 1.5rem;
   border-radius: 12px;
@@ -65,7 +64,7 @@
 /* Calendario */
 .calendarCard {
   width: 120%;
-  max-width: 1200px;       /* 👈 limita el tamaño del calendario */
+  max-width: 1200px;
   background: #fff;
   border-radius: 12px;
   padding: 1rem;
@@ -99,7 +98,7 @@
 
 /* Estilo para el botón de agendar */
 .agendarBtn {
-  background: linear-gradient(135deg, #007bff, #00c6ff); /* degradado azul */
+  background: linear-gradient(135deg, #007bff, #00c6ff);
   border: none;
   border-radius: 8px;
   color: #fff;
@@ -188,7 +187,7 @@
 
 /* Botón activo (ej: cuando estás en vista "month") */
 :global(.fc .fc-button.fc-button-active) {
-  background-color: #df030e; /* naranja */
+  background-color: #df030e;
   border: none;
 }
 
@@ -197,3 +196,216 @@
   background: linear-gradient(135deg, #0056b3, #0096d6);
 }
 
+/* ========================================
+   🎨 ESTILOS DEL MODAL
+   ======================================== */
+
+/* Overlay oscuro de fondo */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Contenedor del modal */
+.modalContent {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  width: 90%;
+  max-width: 500px;
+  overflow: hidden;
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Header del modal */
+.modalHeader {
+  background: linear-gradient(135deg, #007bff, #00c6ff);
+  color: white;
+  padding: 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modalHeader h3 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+/* Botón cerrar */
+.modalClose {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  font-size: 1.8rem;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  line-height: 1;
+}
+
+.modalClose:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: rotate(90deg);
+}
+
+/* Body del modal */
+.modalBody {
+  padding: 2rem;
+}
+
+.modalInfo {
+  background: #f8f9fa;
+  border-left: 4px solid #007bff;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+}
+
+.modalInfo p {
+  margin: 0.5rem 0;
+  font-size: 1rem;
+  color: #333;
+}
+
+.modalInfo strong {
+  color: #007bff;
+  font-weight: 600;
+}
+
+/* Label del input */
+.modalLabel {
+  display: block;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 0.5rem;
+  font-size: 1rem;
+}
+
+/* Input del modal */
+.modalInput {
+  width: 100%;
+  padding: 0.75rem;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+}
+
+.modalInput:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+}
+
+/* Footer del modal */
+.modalFooter {
+  padding: 1.5rem;
+  background: #f8f9fa;
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+}
+
+/* Botón cancelar */
+.modalBtnCancel {
+  padding: 0.75rem 1.5rem;
+  border: 2px solid #6c757d;
+  background: white;
+  color: #6c757d;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.95rem;
+}
+
+.modalBtnCancel:hover {
+  background: #6c757d;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);
+}
+
+/* Botón guardar */
+.modalBtnSave {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  background: linear-gradient(135deg, #28a745, #20c997);
+  color: white;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.95rem;
+  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+}
+
+.modalBtnSave:hover {
+  background: linear-gradient(135deg, #218838, #1ba87c);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(40, 167, 69, 0.4);
+}
+
+.modalBtnSave:active {
+  transform: scale(0.98);
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .modalContent {
+    width: 95%;
+    margin: 1rem;
+  }
+
+  .modalHeader h3 {
+    font-size: 1.2rem;
+  }
+
+  .modalFooter {
+    flex-direction: column;
+  }
+
+  .modalBtnCancel,
+  .modalBtnSave {
+    width: 100%;
+  }
+}
