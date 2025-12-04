@@ -92,12 +92,12 @@ function AgendaCitas() {
             nombreDisplay(cita.medicoNombre) ||
             "Médico";
 
-          const date = `${fechaISO}T${hora}`;
+          const startTime = `${fechaISO}T${hora}:00`;
 
           return {
             id: cita._id || `${fechaISO}-${hora}-${Math.random().toString(36).slice(2, 7)}`,
             title: `${medicoNombre} - ${pacienteNombre}`,
-            date,
+            start: startTime,
             color: cita.color || "#50302c",
             extendedProps: {
               _id: cita._id,
@@ -151,7 +151,7 @@ function AgendaCitas() {
   // ---------------------------------------------------------
   const guardarEdicion = async () => {
     const nuevaHora = document.getElementById("nuevaHora").value;
-    
+
     if (!nuevaHora) {
       alert("⚠️ Debes ingresar una hora válida");
       return;
@@ -174,14 +174,14 @@ function AgendaCitas() {
         prev.map((ev) =>
           ev.id === modalEditar.citaId
             ? {
-                ...ev,
-                date: `${data.fecha}T${data.horaInicio}`,
-                title: `${data.medico || ev.extendedProps.medico} - ${data.paciente || ev.extendedProps.paciente}`,
-                extendedProps: {
-                  ...ev.extendedProps,
-                  horaInicio: data.horaInicio,
-                },
-              }
+              ...ev,
+              start: `${data.fecha}T${data.horaInicio}:00`,
+              title: `${data.medico || ev.extendedProps.medico} - ${data.paciente || ev.extendedProps.paciente}`,
+              extendedProps: {
+                ...ev.extendedProps,
+                horaInicio: data.horaInicio,
+              },
+            }
             : ev
         )
       );
@@ -285,7 +285,7 @@ function AgendaCitas() {
         {
           id: data._id,
           title: `${data.medicoId} - Paciente: ${data.pacienteId}`,
-          date: `${data.fecha}T${data.horaInicio}`,
+          start: `${data.fecha}T${data.horaInicio}:00`,
           color: coloresMedicos[data.medicoId] || "#50302c",
           extendedProps: {
             _id: data._id,
@@ -330,9 +330,9 @@ function AgendaCitas() {
       .filter(
         (ev) =>
           ev.title.includes(busqueda.medico) &&
-          ev.date.startsWith(busqueda.fecha)
+          ev.start.startsWith(busqueda.fecha)
       )
-      .map((e) => e.date.split("T")[1].substring(0, 5));
+      .map((e) => e.start.split("T")[1].substring(0, 5));
 
     const libres = horasBase.filter((h) => !ocupadas.includes(h));
 
@@ -368,14 +368,14 @@ function AgendaCitas() {
           <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
             <div className={styles.modalHeader}>
               <h3>✏️ Editar Cita</h3>
-              <button 
+              <button
                 className={styles.modalClose}
                 onClick={() => setModalEditar({ ...modalEditar, visible: false })}
               >
                 ✕
               </button>
             </div>
-            
+
             <div className={styles.modalBody}>
               <div className={styles.modalInfo}>
                 <p><strong>👨‍⚕️ Médico:</strong> {modalEditar.medico}</p>
@@ -393,13 +393,13 @@ function AgendaCitas() {
             </div>
 
             <div className={styles.modalFooter}>
-              <button 
+              <button
                 className={styles.modalBtnCancel}
                 onClick={() => setModalEditar({ ...modalEditar, visible: false })}
               >
                 Cancelar
               </button>
-              <button 
+              <button
                 className={styles.modalBtnSave}
                 onClick={guardarEdicion}
               >

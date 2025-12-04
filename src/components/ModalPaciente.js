@@ -1,41 +1,12 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import style from "../styles/ModalPaciente.css";
 
 const API_BASE_URL = "https://vitaltrack-backend-v5el.onrender.com";
 
-// Agrega esta función al inicio del componente (fuera del componente o como función auxiliar)
-const testEndpoints = async () => {
-  const endpointsToTest = [
-    { url: `${API_BASE_URL}/diagnostico/681148e04abe2392d8245cfd`, method: 'PUT' },
-    { url: `${API_BASE_URL}/diagnostico/681148e04abe2392d8245cfd`, method: 'PATCH' },
-    { url: `${API_BASE_URL}/diagnosticos/681148e04abe2392d8245cfd`, method: 'PUT' },
-    { url: `${API_BASE_URL}/diagnosticos/681148e04abe2392d8245cfd`, method: 'PATCH' },
-    { url: `${API_BASE_URL}/diagnostico`, method: 'POST' },
-    { url: `${API_BASE_URL}/diagnosticos`, method: 'POST' },
-  ];
-
-  console.log('🔍 Probando endpoints...');
-  
-  for (const test of endpointsToTest) {
-    try {
-      console.log(`📡 Probando: ${test.method} ${test.url}`);
-      const res = await fetch(test.url, {
-        method: test.method,
-        headers: { 'Content-Type': 'application/json' },
-        body: test.method === 'GET' ? null : JSON.stringify({ test: true })
-      });
-      console.log(`✅ ${test.method} ${test.url}: ${res.status} ${res.statusText}`);
-    } catch (error) {
-      console.log(`❌ ${test.method} ${test.url}: ${error.message}`);
-    }
-  }
-};
 
 
 
 
-// Llama a esta función cuando necesites debuggear
-// testEndpoints();
 
 const ModalPaciente = ({ documento, onClose }) => {
   const [data, setData] = useState({
@@ -50,23 +21,21 @@ const ModalPaciente = ({ documento, onClose }) => {
     ttocxreconst: [],
     ttopaliativos: []
   });
-  
+
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState("paciente");
   const [editMode, setEditMode] = useState({});
-  const [currentFormIndex, setCurrentFormIndex] = useState(0);
-  
-  const tabsContainerRef = useRef(null);
+
 
   useEffect(() => {
     const cargarHistorial = async () => {
       if (!documento) return;
-      
+
       setLoading(true);
       try {
         const res = await fetch(`${API_BASE_URL}/paciente/historial/${documento}`);
-        
+
         if (!res.ok) {
           if (res.status === 404) {
             alert(`⚠️ Paciente con cédula ${documento} no encontrado`);
@@ -77,10 +46,10 @@ const ModalPaciente = ({ documento, onClose }) => {
         }
 
         const result = await res.json();
-        
+
         if (result.ok && result.data) {
           const historialData = result.data;
-          
+
           setData({
             paciente: historialData.paciente || null,
             diagnosticos: historialData.diagnosticos || [],
@@ -98,7 +67,6 @@ const ModalPaciente = ({ documento, onClose }) => {
           onClose();
         }
       } catch (err) {
-        console.error("❌ Error cargando historial:", err);
         alert("Error de conexión al cargar el historial");
         onClose();
       } finally {
@@ -113,21 +81,21 @@ const ModalPaciente = ({ documento, onClose }) => {
 
   const formatDateForInput = (dateString) => {
     if (!dateString) return "";
-    
+
     try {
       // Si ya es formato yyyy-MM-dd, retornar directamente
       if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
         return dateString;
       }
-      
+
       // Si es formato ISO, convertir a yyyy-MM-dd
       const date = new Date(dateString);
       if (isNaN(date.getTime())) return "";
-      
+
       const year = date.getFullYear();
       const month = String(date.getMonth() + 1).padStart(2, '0');
       const day = String(date.getDate()).padStart(2, '0');
-      
+
       return `${year}-${month}-${day}`;
     } catch {
       return "";
@@ -147,35 +115,7 @@ const ModalPaciente = ({ documento, onClose }) => {
 
   // ========== FUNCIONES DE NAVEGACIÓN ==========
 
-  const scrollTabsLeft = () => {
-    if (tabsContainerRef.current) {
-      tabsContainerRef.current.scrollBy({ left: -200, behavior: 'smooth' });
-    }
-  };
 
-  const scrollTabsRight = () => {
-    if (tabsContainerRef.current) {
-      tabsContainerRef.current.scrollBy({ left: 200, behavior: 'smooth' });
-    }
-  };
-
-  const nextForm = () => {
-    if (currentFormIndex < data[activeTab]?.length - 1) {
-      setCurrentFormIndex(prev => prev + 1);
-      setTimeout(() => {
-        document.querySelector('.tab-content-inner')?.scrollTo({ top: 0, behavior: 'smooth' });
-      }, 100);
-    }
-  };
-
-  const prevForm = () => {
-    if (currentFormIndex > 0) {
-      setCurrentFormIndex(prev => prev - 1);
-      setTimeout(() => {
-        document.querySelector('.tab-content-inner')?.scrollTo({ top: 0, behavior: 'smooth' });
-      }, 100);
-    }
-  };
 
   // ========== FUNCIONES GENERALES ==========
 
@@ -192,167 +132,160 @@ const ModalPaciente = ({ documento, onClose }) => {
     }
   };
 
-const handleSave = async (section, item = null, index = null) => {
-  setSaving(true);
-  
-  try {
-    let endpoint = "";
-    let method = "POST";
-    let bodyData = {};
-    
-    const dataToSave = index !== null ? data[section][index] : item;
-    
-    if (!documento) {
-      alert("❌ Error: No se encontró el documento del paciente");
-      setSaving(false);
-      return;
-    }
-    
-    if (!dataToSave) {
-      alert("❌ No hay datos para guardar");
-      setSaving(false);
-      return;
-    }
-    
-    console.log("🔍 Datos a guardar para", section, ":", dataToSave);
-    
-    switch(section) {
-      case "paciente":
-        // ✅ CORREGIDO: Usar el número de documento (V6NumID) en lugar del _id
-        const cedulaPaciente = documento; // Esto es V6NumID
-        endpoint = `${API_BASE_URL}/paciente/${cedulaPaciente}`;
-        method = "PATCH";
-        
-        // Construir el DTO completo para el paciente
-        bodyData = {
-          V1PrimerNom: data.paciente.V1PrimerNom || "",
-          V2SegundoNom: data.paciente.V2SegundoNom || "",
-          V3PrimerApe: data.paciente.V3PrimerApe || "",
-          V4SegundoApe: data.paciente.V4SegundoApe || "",
-          V5TipoID: data.paciente.V5TipoID || "CC",
-          V6NumID: data.paciente.V6NumID || cedulaPaciente, // ¡IMPORTANTE!
-          V7FecNac: data.paciente.V7FecNac || "",
-          V8Sexo: data.paciente.V8Sexo || "",
-          V9Ocup: data.paciente.V9Ocup || "",
-          V10RegAfiliacion: data.paciente.V10RegAfiliacion || "",
-          V11CodEAPB: data.paciente.V11CodEAPB || "",
-          V12CodEtnia: data.paciente.V12CodEtnia || "",
-          V13GrupoPob: data.paciente.V13GrupoPob || "",
-          V14MpioRes: data.paciente.V14MpioRes || "",
-          V15NumTel: data.paciente.V15NumTel || "",
-          V16FecAfiliacion: data.paciente.V16FecAfiliacion || "",
-          FechaIngreso: data.paciente.FechaIngreso || new Date().toISOString()
-        };
-        break;
-        
-      case "diagnosticos":
-        const diagnosticoId = dataToSave._id;
-        
-        // PARA DIAGNÓSTICOS: Verificar si existe endpoint de diagnóstico
-        if (diagnosticoId && diagnosticoId !== "null") {
-          // Si ya existe, actualizar usando el _id del diagnóstico
-          endpoint = `${API_BASE_URL}/diagnostico/${diagnosticoId}`;
-          method = "PATCH";
-        } else {
-          // Si es nuevo, crear con el número de documento
-          endpoint = `${API_BASE_URL}/diagnostico`;
-          method = "POST";
-        }
-        
-        bodyData = {
-          V17CodCIE10: dataToSave.V17CodCIE10 || "",
-          V18FecDiag: dataToSave.V18FecDiag || "",
-          V19FecRemision: dataToSave.V19FecRemision || "",
-          V20FecIngInst: dataToSave.V20FecIngInst || "",
-          V21TipoEstDiag: dataToSave.V21TipoEstDiag || "",
-          V22MotNoHistop: dataToSave.V22MotNoHistop || "",
-          V23FecRecMuestra: dataToSave.V23FecRecMuestra || "",
-          V24FecInfHistop: dataToSave.V24FecInfHistop || "",
-          V25CodHabIPS: dataToSave.V25CodHabIPS || "",
-          V26Fec1raCons: dataToSave.V26Fec1raCons || "",
-          V27HistTumor: dataToSave.V27HistTumor || "",
-          V28GradoDifTum: dataToSave.V28GradoDifTum || "",
-          V29EstadifTum: dataToSave.V29EstadifTum || "",
-          V30FecEstadif: dataToSave.V30FecEstadif || "",
-          V31PruebaHER2: dataToSave.V31PruebaHER2 || "",
-          V32FecPruebaHER2: dataToSave.V32FecPruebaHER2 || "",
-          V33ResHER2: dataToSave.V33ResHER2 || "",
-          V34EstadifDukes: dataToSave.V34EstadifDukes || "",
-          V35FecEstDukes: dataToSave.V35FecEstDukes || "",
-          V36EstadifLinfMielo: dataToSave.V36EstadifLinfMielo || "",
-          V37ClasGleason: dataToSave.V37ClasGleason || "",
-          V38ClasRiesgoLL: dataToSave.V38ClasRiesgoLL || "",
-          V39FecClasRiesgo: dataToSave.V39FecClasRiesgo || "",
-          V40ObjTtoInicial: dataToSave.V40ObjTtoInicial || "",
-          V41IntervMed: dataToSave.V41IntervMed || "",
-          agrupador: dataToSave.agrupador || "",
-          observaciones: dataToSave.observaciones || "",
-          // ¡IMPORTANTE! Incluir el pacienteId para la relación
-          pacienteId: documento,
-          V6NumID: documento
-        };
-        break;
-        
-      // ... (las demás secciones se mantienen igual)
-    }
+  const handleSave = async (section, item = null, index = null) => {
+    setSaving(true);
 
-    console.log(`📤 Enviando ${method} a: ${endpoint}`);
-    console.log("📦 Datos enviados:", bodyData);
-
-    const res = await fetch(endpoint, {
-      method,
-      headers: { 
-        "Content-Type": "application/json",
-        "Accept": "application/json"
-      },
-      body: JSON.stringify(bodyData),
-    });
-
-    console.log("📥 Respuesta HTTP:", res.status, res.statusText);
-    
-    let responseData = {};
     try {
-      const text = await res.text();
-      if (text) {
-        responseData = JSON.parse(text);
+      let endpoint = "";
+      let method = "POST";
+      let bodyData = {};
+
+      const dataToSave = index !== null ? data[section][index] : item;
+
+      if (!documento) {
+        alert("❌ Error: No se encontró el documento del paciente");
+        setSaving(false);
+        return;
       }
-      console.log("📥 Datos respuesta:", responseData);
-    } catch (jsonError) {
-      console.log("📥 Respuesta no es JSON:", jsonError);
-    }
-    
-    if (res.ok) {
-      alert("✅ Guardado exitoso");
-      await recargarHistorial();
-      setEditMode({});
-    } else {
-      console.error("❌ Error detallado:", responseData);
-      
-      // Mostrar mensaje específico según el error
-      let errorMessage = `❌ Error ${res.status}: `;
-      
-      if (responseData.mensaje) {
-        errorMessage += responseData.mensaje;
-      } else if (responseData.error) {
-        errorMessage += responseData.error;
+
+      if (!dataToSave) {
+        alert("❌ No hay datos para guardar");
+        setSaving(false);
+        return;
+      }
+
+
+      switch (section) {
+        case "paciente":
+          // ✅ CORREGIDO: Usar el número de documento (V6NumID) en lugar del _id
+          const cedulaPaciente = documento; // Esto es V6NumID
+          endpoint = `${API_BASE_URL}/paciente/${cedulaPaciente}`;
+          method = "PATCH";
+
+          // Construir el DTO completo para el paciente
+          bodyData = {
+            V1PrimerNom: data.paciente.V1PrimerNom || "",
+            V2SegundoNom: data.paciente.V2SegundoNom || "",
+            V3PrimerApe: data.paciente.V3PrimerApe || "",
+            V4SegundoApe: data.paciente.V4SegundoApe || "",
+            V5TipoID: data.paciente.V5TipoID || "CC",
+            V6NumID: data.paciente.V6NumID || cedulaPaciente, // ¡IMPORTANTE!
+            V7FecNac: data.paciente.V7FecNac || "",
+            V8Sexo: data.paciente.V8Sexo || "",
+            V9Ocup: data.paciente.V9Ocup || "",
+            V10RegAfiliacion: data.paciente.V10RegAfiliacion || "",
+            V11CodEAPB: data.paciente.V11CodEAPB || "",
+            V12CodEtnia: data.paciente.V12CodEtnia || "",
+            V13GrupoPob: data.paciente.V13GrupoPob || "",
+            V14MpioRes: data.paciente.V14MpioRes || "",
+            V15NumTel: data.paciente.V15NumTel || "",
+            V16FecAfiliacion: data.paciente.V16FecAfiliacion || "",
+            FechaIngreso: data.paciente.FechaIngreso || new Date().toISOString()
+          };
+          break;
+
+        case "diagnosticos":
+          const diagnosticoId = dataToSave._id;
+
+          // PARA DIAGNÓSTICOS: Verificar si existe endpoint de diagnóstico
+          if (diagnosticoId && diagnosticoId !== "null") {
+            // Si ya existe, actualizar usando el _id del diagnóstico
+            endpoint = `${API_BASE_URL}/diagnostico/${diagnosticoId}`;
+            method = "PATCH";
+          } else {
+            // Si es nuevo, crear con el número de documento
+            endpoint = `${API_BASE_URL}/diagnostico`;
+            method = "POST";
+          }
+
+          bodyData = {
+            V17CodCIE10: dataToSave.V17CodCIE10 || "",
+            V18FecDiag: dataToSave.V18FecDiag || "",
+            V19FecRemision: dataToSave.V19FecRemision || "",
+            V20FecIngInst: dataToSave.V20FecIngInst || "",
+            V21TipoEstDiag: dataToSave.V21TipoEstDiag || "",
+            V22MotNoHistop: dataToSave.V22MotNoHistop || "",
+            V23FecRecMuestra: dataToSave.V23FecRecMuestra || "",
+            V24FecInfHistop: dataToSave.V24FecInfHistop || "",
+            V25CodHabIPS: dataToSave.V25CodHabIPS || "",
+            V26Fec1raCons: dataToSave.V26Fec1raCons || "",
+            V27HistTumor: dataToSave.V27HistTumor || "",
+            V28GradoDifTum: dataToSave.V28GradoDifTum || "",
+            V29EstadifTum: dataToSave.V29EstadifTum || "",
+            V30FecEstadif: dataToSave.V30FecEstadif || "",
+            V31PruebaHER2: dataToSave.V31PruebaHER2 || "",
+            V32FecPruebaHER2: dataToSave.V32FecPruebaHER2 || "",
+            V33ResHER2: dataToSave.V33ResHER2 || "",
+            V34EstadifDukes: dataToSave.V34EstadifDukes || "",
+            V35FecEstDukes: dataToSave.V35FecEstDukes || "",
+            V36EstadifLinfMielo: dataToSave.V36EstadifLinfMielo || "",
+            V37ClasGleason: dataToSave.V37ClasGleason || "",
+            V38ClasRiesgoLL: dataToSave.V38ClasRiesgoLL || "",
+            V39FecClasRiesgo: dataToSave.V39FecClasRiesgo || "",
+            V40ObjTtoInicial: dataToSave.V40ObjTtoInicial || "",
+            V41IntervMed: dataToSave.V41IntervMed || "",
+            agrupador: dataToSave.agrupador || "",
+            observaciones: dataToSave.observaciones || "",
+            // ¡IMPORTANTE! Incluir el pacienteId para la relación
+            pacienteId: documento,
+            V6NumID: documento
+          };
+          break;
+
+        // ... (las demás secciones se mantienen igual)
+      }
+
+
+      const res = await fetch(endpoint, {
+        method,
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json"
+        },
+        body: JSON.stringify(bodyData),
+      });
+
+
+      let responseData = {};
+      try {
+        const text = await res.text();
+        if (text) {
+          responseData = JSON.parse(text);
+        }
+      } catch (jsonError) {
+        // Ignore JSON parse errors
+      }
+
+      if (res.ok) {
+        alert("✅ Guardado exitoso");
+        await recargarHistorial();
+        setEditMode({});
       } else {
-        errorMessage += "No se pudo guardar";
+
+        // Mostrar mensaje específico según el error
+        let errorMessage = `❌ Error ${res.status}: `;
+
+        if (responseData.mensaje) {
+          errorMessage += responseData.mensaje;
+        } else if (responseData.error) {
+          errorMessage += responseData.error;
+        } else {
+          errorMessage += "No se pudo guardar";
+        }
+
+        if (res.status === 404) {
+          errorMessage += `\n\nEndpoint: ${method} ${endpoint}`;
+          errorMessage += `\n\nVerifica que la ruta exista en el backend.`;
+        }
+
+        alert(errorMessage);
       }
-      
-      if (res.status === 404) {
-        errorMessage += `\n\nEndpoint: ${method} ${endpoint}`;
-        errorMessage += `\n\nVerifica que la ruta exista en el backend.`;
-      }
-      
-      alert(errorMessage);
+    } catch (error) {
+      alert(`Error de conexión: ${error.message}`);
+    } finally {
+      setSaving(false);
     }
-  } catch (error) {
-    console.error("❌ Error al guardar:", error);
-    alert(`Error de conexión: ${error.message}`);
-  } finally {
-    setSaving(false);
-  }
-};
+  };
 
   const recargarHistorial = async () => {
     try {
@@ -376,7 +309,6 @@ const handleSave = async (section, item = null, index = null) => {
         }
       }
     } catch (error) {
-      console.error("❌ Error recargando datos:", error);
     }
   };
 
@@ -385,7 +317,7 @@ const handleSave = async (section, item = null, index = null) => {
 
     try {
       let endpoint = "";
-      switch(section) {
+      switch (section) {
         case "diagnosticos": endpoint = `${API_BASE_URL}/diagnostico/${id}`; break;
         case "antecedentes": endpoint = `${API_BASE_URL}/antecedentes/${id}`; break;
         case "ttocx": endpoint = `${API_BASE_URL}/ttocx/${id}`; break;
@@ -398,7 +330,7 @@ const handleSave = async (section, item = null, index = null) => {
       }
 
       const res = await fetch(endpoint, { method: "DELETE" });
-      
+
       if (res.ok) {
         alert("✅ Registro eliminado");
         await recargarHistorial();
@@ -419,51 +351,6 @@ const handleSave = async (section, item = null, index = null) => {
     setEditMode(prev => ({ ...prev, [section]: data[section].length }));
   };
 
-  // Función para probar el endpoint de actualización
-const testActualizacionPaciente = async () => {
-  if (!data.paciente || !data.paciente.V6NumID) {
-    alert("❌ No hay datos de paciente para probar");
-    return;
-  }
-  
-  console.log("🧪 Probando actualización de paciente...");
-  console.log("📋 Datos del paciente:", data.paciente);
-  console.log("🔢 V6NumID:", data.paciente.V6NumID);
-  console.log("🆔 _id:", data.paciente._id);
-  console.log("📝 documento prop:", documento);
-  
-  const testData = {
-    V1PrimerNom: "TEST_" + (data.paciente.V1PrimerNom || "Nombre"),
-    V6NumID: data.paciente.V6NumID
-  };
-  
-  const endpoint = `${API_BASE_URL}/paciente/${data.paciente.V6NumID}`;
-  console.log(`📤 Enviando PATCH a: ${endpoint}`);
-  console.log("📦 Datos de prueba:", testData);
-  
-  try {
-    const res = await fetch(endpoint, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(testData)
-    });
-    
-    console.log("📥 Respuesta:", res.status, res.statusText);
-    
-    if (res.ok) {
-      const result = await res.json();
-      console.log("✅ Éxito:", result);
-      alert("✅ Endpoint funciona correctamente\nLuego podrás restaurar los datos originales");
-    } else {
-      const errorText = await res.text();
-      console.error("❌ Error:", errorText);
-      alert(`❌ Error ${res.status}: ${errorText}`);
-    }
-  } catch (error) {
-    console.error("❌ Error de conexión:", error);
-    alert(`❌ Error de conexión: ${error.message}`);
-  }
-};
 
   const getDefaultItem = (section) => {
     const baseItem = {
@@ -471,8 +358,8 @@ const testActualizacionPaciente = async () => {
       V6NumID: documento,
       V6NumId: documento
     };
-    
-    switch(section) {
+
+    switch (section) {
       case "diagnosticos":
         return {
           ...baseItem,
@@ -504,7 +391,7 @@ const testActualizacionPaciente = async () => {
           agrupador: "",
           observaciones: ""
         };
-        
+
       case "antecedentes":
         return {
           ...baseItem,
@@ -512,7 +399,7 @@ const testActualizacionPaciente = async () => {
           V43FecDiagAnt: "",
           V44TipoCancerAnt: ""
         };
-        
+
       case "ttocx":
         return {
           ...baseItem,
@@ -529,7 +416,7 @@ const testActualizacionPaciente = async () => {
           V84UbicTempCir2: "",
           V85EstVitalPostCir: ""
         };
-        
+
       case "ttoqt":
         return {
           ...baseItem,
@@ -572,7 +459,7 @@ const testActualizacionPaciente = async () => {
           V72CaractUltEsq: "",
           V73MotFinUltEsq: ""
         };
-        
+
       case "ttort":
         return {
           ...baseItem,
@@ -597,7 +484,7 @@ const testActualizacionPaciente = async () => {
           V104CaractUltEsqRadio: "",
           V105MotFinUltEsqRadio: ""
         };
-        
+
       case "ttotrasplante":
         return {
           ...baseItem,
@@ -607,7 +494,7 @@ const testActualizacionPaciente = async () => {
           V109FecTrasplanteCM: "",
           V110CodIPSTrasplanteCM: ""
         };
-        
+
       case "ttocxreconst":
         return {
           ...baseItem,
@@ -615,7 +502,7 @@ const testActualizacionPaciente = async () => {
           V112FecCirugiaReconst: "",
           V113CodIPSCirugiaReconst: ""
         };
-        
+
       case "ttopaliativos":
         return {
           ...baseItem,
@@ -637,20 +524,12 @@ const testActualizacionPaciente = async () => {
           V123TipoSoporteNutricional: "",
           V124TerapiasComplementarias: ""
         };
-        
+
       default:
         return baseItem;
     }
   };
 
-  // Agrega este useEffect para ver la estructura real de los datos
-useEffect(() => {
-  if (data.diagnosticos && data.diagnosticos.length > 0) {
-    console.log("🔍 Primer diagnóstico:", data.diagnosticos[0]);
-    console.log("🔍 Campos del diagnóstico:", Object.keys(data.diagnosticos[0]));
-    console.log("🔍 ID del primer diagnóstico:", data.diagnosticos[0]._id);
-  }
-}, [data.diagnosticos]);
 
   // ========== COMPONENTES DE FORMULARIO ==========
 
@@ -697,7 +576,7 @@ useEffect(() => {
   const renderFormSection = (section, fields, index = null) => {
     const item = index !== null ? data[section][index] : data[section];
     const isEditing = editMode[section] === index || (section === "paciente" && editMode[section]);
-    
+
     return (
       <div className={`form-section ${isEditing ? 'editing' : ''}`}>
         <div className="form-section-header">
@@ -729,7 +608,7 @@ useEffect(() => {
           {fields.map(field => {
             const value = item[field.key];
             const onChange = (newValue) => handleInputChange(section, field.key, newValue, index);
-            
+
             return renderField(
               field.label,
               value,
@@ -753,11 +632,13 @@ useEffect(() => {
     { key: "V5TipoID", label: "Tipo ID", type: "text" },
     { key: "V6NumID", label: "Número ID", type: "text" },
     { key: "V7FecNac", label: "Fecha Nacimiento", type: "date" },
-    { key: "V8Sexo", label: "Sexo", type: "select", options: [
-      { value: "Masculino", label: "Masculino" },
-      { value: "Femenino", label: "Femenino" },
-      { value: "Otro", label: "Otro" }
-    ]},
+    {
+      key: "V8Sexo", label: "Sexo", type: "select", options: [
+        { value: "Masculino", label: "Masculino" },
+        { value: "Femenino", label: "Femenino" },
+        { value: "Otro", label: "Otro" }
+      ]
+    },
     { key: "V9Ocup", label: "Ocupación", type: "text" },
     { key: "V10RegAfiliacion", label: "Régimen Afiliación", type: "text" },
     { key: "V11CodEAPB", label: "Código EAPB", type: "text" },
@@ -821,7 +702,7 @@ useEffect(() => {
   ];
 
   const getFieldsForSection = (section) => {
-    switch(section) {
+    switch (section) {
       case "paciente": return pacienteFields;
       case "diagnosticos": return diagnosticoFields;
       case "antecedentes": return antecedenteFields;
@@ -877,74 +758,44 @@ useEffect(() => {
   const renderTabContent = () => {
     const isMultiFormTab = ["diagnosticos", "antecedentes", "ttocx", "ttoqt"].includes(activeTab);
     const currentItems = data[activeTab] || [];
-    
-    switch(activeTab) {
+
+    switch (activeTab) {
       case "paciente":
         return (
           <div className="tab-content-inner">
             {renderFormSection("paciente", pacienteFields)}
           </div>
         );
-      
+
       case "diagnosticos":
       case "antecedentes":
       case "ttocx":
       case "ttoqt":
         return (
           <div className="tab-content-inner">
-            {isMultiFormTab && currentItems.length > 0 && (
-              <div className="section-navigation">
-                <button 
-                  className="nav-btn" 
-                  onClick={prevForm}
-                  disabled={currentFormIndex === 0}
-                >
-                  ◀ Anterior
-                </button>
-                
-                <div className="section-counter">
-                  {currentFormIndex + 1} de {currentItems.length}
-                </div>
-                
-                <button 
-                  className="nav-btn" 
-                  onClick={nextForm}
-                  disabled={currentFormIndex === currentItems.length - 1}
-                >
-                  Siguiente ▶
-                </button>
-
-                <button 
-  onClick={testActualizacionPaciente}
-  style={{ 
-    background: '#17a2b8', 
-    color: 'white',
-    margin: '10px',
-    padding: '8px 12px'
-  }}
->
-  🧪 Probar Actualización
-</button>
-              </div>
-            )}
-            
             <div className="section-header">
-              <h3>{activeTab === "diagnosticos" ? "Diagnósticos" : 
-                   activeTab === "antecedentes" ? "Antecedentes" :
-                   activeTab === "ttocx" ? "Cirugías Oncológicas" : "Quimioterapia"}</h3>
+              <h3>{activeTab === "diagnosticos" ? "Diagnósticos" :
+                activeTab === "antecedentes" ? "Antecedentes" :
+                  activeTab === "ttocx" ? "Cirugías Oncológicas" : "Quimioterapia"}</h3>
               <button onClick={() => addNewItem(activeTab)} className="btn-add-new">
                 ➕ Agregar Nuevo
               </button>
             </div>
-            
+
             {currentItems.length > 0 ? (
-              renderFormSection(activeTab, getFieldsForSection(activeTab), currentFormIndex)
+              <div className="forms-list">
+                {currentItems.map((item, index) => (
+                  <div key={index}>
+                    {renderFormSection(activeTab, getFieldsForSection(activeTab), index)}
+                  </div>
+                ))}
+              </div>
             ) : (
               <p className="no-data">No hay registros disponibles</p>
             )}
           </div>
         );
-      
+
       case "ttort":
       case "ttotrasplante":
       case "ttocxreconst":
@@ -953,13 +804,13 @@ useEffect(() => {
           <div className="tab-content-inner">
             <div className="section-header">
               <h3>{activeTab === "ttort" ? "Radioterapia" :
-                   activeTab === "ttotrasplante" ? "Trasplantes" :
-                   activeTab === "ttocxreconst" ? "Cirugías Reconstructivas" : "Cuidados Paliativos"}</h3>
+                activeTab === "ttotrasplante" ? "Trasplantes" :
+                  activeTab === "ttocxreconst" ? "Cirugías Reconstructivas" : "Cuidados Paliativos"}</h3>
               <button onClick={() => addNewItem(activeTab)} className="btn-add-new">
                 ➕ Agregar Nuevo
               </button>
             </div>
-            
+
             {currentItems.length > 0 ? (
               <div className="data-items-list">
                 {currentItems.map((item, index) => (
@@ -970,7 +821,7 @@ useEffect(() => {
                       )
                     ))}
                     <div className="data-item-actions">
-                      <button onClick={() => setEditMode({[activeTab]: index})} className="btn-edit">
+                      <button onClick={() => setEditMode({ [activeTab]: index })} className="btn-edit">
                         ✏️ Editar
                       </button>
                       <button onClick={() => handleDelete(activeTab, item._id)} className="btn-delete">
@@ -985,7 +836,7 @@ useEffect(() => {
             )}
           </div>
         );
-      
+
       case "archivos":
         return (
           <div className="tab-content-inner">
@@ -997,7 +848,7 @@ useEffect(() => {
                 {data.archivos.map((a, i) => (
                   <div key={i} className="archivo-item">
                     <a href={a.url} target="_blank" rel="noopener noreferrer" className="archivo-link">
-                      📄 {a.nombre || "Archivo"} 
+                      📄 {a.nombre || "Archivo"}
                       {a.fecha && ` (${new Date(a.fecha).toLocaleDateString()})`}
                     </a>
                   </div>
@@ -1008,7 +859,7 @@ useEffect(() => {
             )}
           </div>
         );
-      
+
       default:
         return <div>Selecciona una pestaña</div>;
     }
@@ -1028,45 +879,26 @@ useEffect(() => {
           <button className="close-btn" onClick={onClose}>×</button>
         </div>
 
-        <div className="tabs-navigation-wrapper">
-          <button 
-            className="tab-scroll-btn left" 
-            onClick={scrollTabsLeft}
-            title="Desplazar izquierda"
-          >
-            ◀
-          </button>
-          
-          <div className="tabs-container" ref={tabsContainerRef}>
-            <div className="tabs">
-              {tabs.map((tab) => (
-                <button
-                  key={tab.key}
-                  className={activeTab === tab.key ? "tab active" : "tab"}
-                  onClick={() => {
-                    setActiveTab(tab.key);
-                    setCurrentFormIndex(0);
-                    setTimeout(() => {
-                      document.querySelector('.tab-content-inner')?.scrollTo({ top: 0, behavior: 'smooth' });
-                    }, 100);
-                  }}
-                  title={tab.label}
-                >
-                  <span className="tab-icon">{tab.icon}</span>
-                  <span className="tab-label">{tab.label}</span>
-                  {tab.count > 0 && <span className="badge">{tab.count}</span>}
-                </button>
-              ))}
-            </div>
+        <div className="tabs-container">
+          <div className="tabs">
+            {tabs.map((tab) => (
+              <button
+                key={tab.key}
+                className={activeTab === tab.key ? "tab active" : "tab"}
+                onClick={() => {
+                  setActiveTab(tab.key);
+                  setTimeout(() => {
+                    document.querySelector('.tab-content-inner')?.scrollTo({ top: 0, behavior: 'smooth' });
+                  }, 100);
+                }}
+                title={tab.label}
+              >
+                <span className="tab-icon">{tab.icon}</span>
+                <span className="tab-label">{tab.label}</span>
+                {tab.count > 0 && <span className="badge">{tab.count}</span>}
+              </button>
+            ))}
           </div>
-          
-          <button 
-            className="tab-scroll-btn right" 
-            onClick={scrollTabsRight}
-            title="Desplazar derecha"
-          >
-            ▶
-          </button>
         </div>
 
         <div className="modal-body">

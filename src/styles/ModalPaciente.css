@@ -1,6 +1,5 @@
-/* ModalPaciente.css - Estilos unificados y actualizados */
+/* ModalPaciente.css - Versión FINAL CORREGIDA (Scroll interno perfecto) */
 
-/* ========== VARIABLES CSS ========== */
 :root {
   --primary-color: #1e40af;
   --primary-light: #3b82f6;
@@ -46,18 +45,25 @@
   to { opacity: 1; }
 }
 
-/* ========== MODAL CONTENT ========== */
-.modal-content {
+/* ========== MODAL CONTENT - CLAVE: SIN overflow:hidden ========== */
+.modal-content,
+.modal-content-wide {
   background: white;
   border-radius: var(--radius-lg);
   width: 95%;
   max-width: 1200px;
-  max-height: 90vh;
-  overflow: hidden;
+  height: 90vh;                    /* Altura fija para que funcione flex */
+  max-height: 90vh;                /* Respeta límite en pantallas pequeñas */
   box-shadow: var(--shadow-lg);
   display: flex;
   flex-direction: column;
   animation: slideIn 0.3s ease;
+  /* ¡¡ELIMINADO overflow: hidden!! → ahora el scroll del body funciona */
+}
+
+.modal-content-wide {
+  max-width: 1400px;
+  width: 98%;
 }
 
 @keyframes slideIn {
@@ -65,11 +71,7 @@
   to { transform: translateY(0); opacity: 1; }
 }
 
-.modal-content-wide {
-  width: 98%;
-  max-width: 1400px;
-}
-
+/* ========== HEADER Y FOOTER FIJOS ========== */
 .modal-header {
   padding: 24px 32px;
   background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
@@ -112,6 +114,14 @@
 
 .close-btn:hover {
   background: rgba(255, 255, 255, 0.2);
+}
+
+.modal-footer {
+  padding: 15px 32px;
+  border-top: 1px solid var(--border-color);
+  background: white;
+  flex-shrink: 0;
+  text-align: right;
 }
 
 /* ========== TABS ========== */
@@ -172,18 +182,22 @@
   font-weight: 600;
 }
 
-/* ========== MODAL BODY ========== */
+/* ========== MODAL BODY - AQUÍ ESTÁ EL SCROLL ========== */
 .modal-body {
-  flex: 1;
-  overflow-y: auto;
+  flex: 1;                              /* Crece y ocupa todo el espacio disponible */
+  overflow-y: auto;                     /* SCROLL INTERNO */
   padding: 0;
+  -webkit-overflow-scrolling: touch;   /* Scroll suave en iOS */
+  background: #f9f9f9;
 }
 
 .tab-content-inner {
   padding: 32px;
+  min-height: 100%;
   animation: fadeIn 0.3s ease;
 }
 
+/* ========== FORMULARIOS Y SECCIONES ========== */
 .section-header {
   display: flex;
   justify-content: space-between;
@@ -199,7 +213,6 @@
   font-size: 1.3rem;
 }
 
-/* ========== FORMULARIOS ========== */
 .form-section {
   background: var(--light-bg);
   border-radius: var(--radius-md);
@@ -234,7 +247,6 @@
   gap: 8px;
 }
 
-/* Grids de formularios */
 .form-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -248,7 +260,6 @@
   margin-bottom: 20px;
 }
 
-/* Campos de formulario */
 .form-field {
   margin-bottom: 16px;
 }
@@ -281,48 +292,6 @@
   box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.15);
 }
 
-.form-field input:disabled,
-.form-field select:disabled {
-  background: #f3f4f6;
-  color: var(--text-muted);
-  cursor: not-allowed;
-}
-
-/* ========== TABLAS ========== */
-.tabla-historial {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 16px;
-  font-size: 0.9rem;
-  background: white;
-  border-radius: var(--radius-sm);
-  overflow: hidden;
-  box-shadow: var(--shadow-sm);
-}
-
-.tabla-historial th {
-  background: var(--light-bg);
-  padding: 14px 12px;
-  text-align: left;
-  font-weight: 600;
-  color: var(--text-primary);
-  border-bottom: 2px solid var(--border-color);
-}
-
-.tabla-historial td {
-  padding: 14px 12px;
-  border-bottom: 1px solid var(--border-color);
-  color: var(--text-secondary);
-}
-
-.tabla-historial tr:hover {
-  background: rgba(30, 64, 175, 0.02);
-}
-
-.tabla-historial tr:last-child td {
-  border-bottom: none;
-}
-
 /* ========== BOTONES ========== */
 .btn {
   padding: 10px 20px;
@@ -343,77 +312,19 @@
   box-shadow: var(--shadow-md);
 }
 
-.btn:active:not(:disabled) {
-  transform: translateY(0);
-}
+.btn-add-new { background: var(--success-color); color: white; }
+.btn-add-new:hover:not(:disabled) { background: var(--success-hover); }
 
-.btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
+.btn-save { background: var(--primary-color); color: white; }
+.btn-save:hover:not(:disabled) { background: var(--primary-dark); }
 
-/* Botones específicos */
-.btn-add-new {
-  background: var(--success-color);
-  color: white;
-}
+.btn-edit { background: #0ea5e9; color: white; padding: 6px 12px; font-size: 0.85rem; }
+.btn-delete { background: var(--danger-color); color: white; }
+.btn-delete:hover:not(:disabled) { background: var(--danger-hover); }
+.btn-cancel { background: var(--secondary-color); color: white; }
+.btn-cancel:hover:not(:disabled) { background: #475569; }
 
-.btn-add-new:hover:not(:disabled) {
-  background: var(--success-hover);
-}
-
-.btn-save {
-  background: var(--primary-color);
-  color: white;
-}
-
-.btn-save:hover:not(:disabled) {
-  background: var(--primary-dark);
-}
-
-.btn-edit {
-  background: #0ea5e9;
-  color: white;
-  padding: 6px 12px;
-  font-size: 0.85rem;
-}
-
-.btn-delete {
-  background: var(--danger-color);
-  color: white;
-}
-
-.btn-delete:hover:not(:disabled) {
-  background: var(--danger-hover);
-}
-
-.btn-cancel {
-  background: var(--secondary-color);
-  color: white;
-}
-
-.btn-cancel:hover:not(:disabled) {
-  background: #475569;
-}
-
-.btn-eliminar-sm {
-  background: var(--danger-color);
-  color: white;
-  padding: 4px 8px;
-  border: none;
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  font-size: 0.8rem;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.btn-eliminar-sm:hover {
-  background: var(--danger-hover);
-}
-
-/* ========== ESTADOS Y MENSAJES ========== */
+/* ========== ESTADOS ========== */
 .no-data {
   text-align: center;
   color: var(--text-muted);
@@ -424,246 +335,75 @@
   border: 1px dashed var(--border-color);
 }
 
-.modal-loading {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: rgba(0, 0, 0, 0.85);
-  color: white;
-  padding: 24px 40px;
-  border-radius: var(--radius-md);
-  font-size: 1.1rem;
-  z-index: 10;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.modal-error {
+.modal-loading, .modal-error {
   text-align: center;
   padding: 40px;
 }
 
-.modal-error h3 {
-  color: var(--danger-color);
-  margin-bottom: 16px;
-}
-
-/* ========== ARCHIVOS ========== */
-.archivos-container {
-  padding: 20px;
-}
-
-.archivos-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.archivo-item {
-  padding: 12px 16px;
-  background: var(--light-bg);
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border-color);
-  transition: all var(--transition-fast);
-}
-
-.archivo-item:hover {
-  background: rgba(30, 64, 175, 0.05);
-  border-color: var(--primary-light);
-  transform: translateX(4px);
-}
-
-.archivo-link {
-  color: var(--primary-color);
-  text-decoration: none;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-weight: 500;
-}
-
-.archivo-link:hover {
-  text-decoration: underline;
-}
-
-.subir-archivo {
-  margin-top: 24px;
-  padding: 20px;
-  background: var(--light-bg);
-  border-radius: var(--radius-md);
-  border: 2px dashed var(--border-color);
-  text-align: center;
-  transition: border-color var(--transition-fast);
-}
-
-.subir-archivo:hover {
-  border-color: var(--primary-color);
-}
-
-/* ========== ITEMS DE DATOS ========== */
-.data-item {
-  background: white;
-  border-radius: var(--radius-sm);
-  padding: 16px;
-  margin-bottom: 12px;
-  border: 1px solid var(--border-color);
-  transition: all var(--transition-fast);
-}
-
-.data-item:hover {
-  box-shadow: var(--shadow-sm);
-  border-color: var(--primary-light);
-}
-
-.data-item p {
-  margin: 6px 0;
-  color: var(--text-secondary);
-}
-
-.data-item strong {
-  color: var(--text-primary);
-  min-width: 120px;
-  display: inline-block;
-}
-
 /* ========== RESPONSIVE ========== */
 @media (max-width: 768px) {
-  .modal-content {
+  .modal-content,
+  .modal-content-wide {
     width: 98%;
-    max-height: 95vh;
+    height: 94vh;
+    max-height: 94vh;
     border-radius: 12px;
   }
-  
+
   .modal-header {
     padding: 20px;
     flex-direction: column;
     align-items: flex-start;
     gap: 12px;
   }
-  
+
   .close-btn {
     position: absolute;
-    top: 20px;
-    right: 20px;
+    top: 16px;
+    right: 16px;
   }
-  
-  .tabs {
-    padding: 0 8px;
-  }
-  
-  .tab {
-    padding: 12px 16px;
-    font-size: 0.9rem;
-  }
-  
-  .tab-icon {
-    font-size: 1rem;
-  }
-  
+
   .tab-content-inner {
     padding: 20px;
   }
-  
+
   .form-grid,
   .form-grid-sm {
     grid-template-columns: 1fr;
   }
-  
+
   .section-header {
     flex-direction: column;
-    gap: 16px;
     align-items: flex-start;
-  }
-  
-  .form-actions {
-    flex-wrap: wrap;
-  }
-  
-  .btn {
-    width: 100%;
-    justify-content: center;
+    gap: 12px;
   }
 }
 
 @media (max-width: 480px) {
-  .modal-header h2 {
-    font-size: 1.3rem;
-  }
-  
-  .tab {
-    padding: 10px 12px;
-    font-size: 0.85rem;
-  }
-  
-  .tab-content-inner {
-    padding: 16px;
-  }
-  
-  .form-field input,
-  .form-field select {
-    padding: 10px 12px;
-  }
+  .modal-header h2 { font-size: 1.3rem; }
+  .tab { padding: 10px 12px; font-size: 0.85rem; }
+  .tab-content-inner { padding: 16px; }
 }
 
-/* ========== UTILIDADES ========== */
-.full-width {
-  grid-column: 1 / -1;
-}
-
-.text-center {
-  text-align: center;
-}
-
-.mt-1 { margin-top: 4px; }
-.mt-2 { margin-top: 8px; }
-.mt-3 { margin-top: 12px; }
-.mt-4 { margin-top: 16px; }
-.mt-5 { margin-top: 20px; }
-
-.mb-1 { margin-bottom: 4px; }
-.mb-2 { margin-bottom: 8px; }
-.mb-3 { margin-bottom: 12px; }
-.mb-4 { margin-bottom: 16px; }
-.mb-5 { margin-bottom: 20px; }
-
-.p-1 { padding: 4px; }
-.p-2 { padding: 8px; }
-.p-3 { padding: 12px; }
-.p-4 { padding: 16px; }
-.p-5 { padding: 20px; }
-
-/* ========== ANIMACIONES ADICIONALES ========== */
-@keyframes pulse {
-  0% { opacity: 1; }
-  50% { opacity: 0.7; }
-  100% { opacity: 1; }
-}
-
-.saving {
-  animation: pulse 1.5s infinite;
-}
-
-/* ========== SCROLLBAR PERSONALIZADA ========== */
+/* ========== SCROLLBAR BONITA ========== */
 .modal-body::-webkit-scrollbar,
 .tabs-container::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
 }
 
 .modal-body::-webkit-scrollbar-track,
 .tabs-container::-webkit-scrollbar-track {
-  background: var(--light-bg);
+  background: transparent;
 }
 
 .modal-body::-webkit-scrollbar-thumb,
 .tabs-container::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 3px;
+  background: rgba(100, 100, 100, 0.3);
+  border-radius: 4px;
 }
 
 .modal-body::-webkit-scrollbar-thumb:hover,
 .tabs-container::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: rgba(100, 100, 100, 0.5);
 }

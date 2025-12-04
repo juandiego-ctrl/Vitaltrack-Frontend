@@ -11,20 +11,27 @@ function RecordatoriosCitas() {
   useEffect(() => {
     const cargarCitas = async () => {
       try {
+        console.log("Intentando cargar citas desde:", `${API_URL}/citas`);
         const res = await fetch(`${API_URL}/citas`);
+        console.log("Respuesta del servidor - Status:", res.status, "OK:", res.ok);
+
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}: ${await res.text()}`);
+        }
+
         const data = await res.json();
+        console.log("Datos recibidos del backend:", data);
 
-        // Filtrar solo citas futuras o de hoy
-        const hoy = new Date().setHours(0, 0, 0, 0);
-        const citasFiltradas = data.filter((cita) => {
-          const fechaCita = new Date(cita.fecha);
-          return fechaCita >= hoy;
-        });
+        // Por ahora mostrar todas las citas para verificar que se cargan
+        // TODO: Filtrar solo citas futuras o de hoy
+        const citasFiltradas = data;
+        console.log("Mostrando todas las citas (filtro temporalmente deshabilitado):", citasFiltradas);
 
+        console.log("Citas filtradas:", citasFiltradas);
         setCitas(citasFiltradas);
       } catch (err) {
         console.error("Error cargando citas:", err);
-        alert("Error al cargar citas");
+        alert("Error al cargar citas: " + err.message);
       }
     };
 
