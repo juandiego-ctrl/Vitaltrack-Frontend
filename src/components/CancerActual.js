@@ -34,30 +34,40 @@ const PacienteCRUD = () => {
       const data = await res.json();
       console.log("✅ Respuesta del backend:", data);
 
-      // ACTUALIZADO: Manejo simplificado de la respuesta
+      // ✅ CORREGIDO: Los pacientes están en data.pacientes
       let listaPacientes = [];
       
       if (data.ok && Array.isArray(data.pacientes)) {
         listaPacientes = data.pacientes;
+        console.log(`✅ Encontrados ${listaPacientes.length} pacientes en data.pacientes`);
       } else if (Array.isArray(data)) {
         listaPacientes = data;
+        console.log(`✅ Encontrados ${listaPacientes.length} pacientes directamente en el array`);
       } else {
-        // Si no encontramos pacientes, usar array vacío
+        console.warn("⚠️ No se encontró la lista de pacientes en la respuesta:", data);
         listaPacientes = [];
       }
 
-      console.log(`✅ ${listaPacientes.length} pacientes cargados`);
+      console.log(`✅ Total de ${listaPacientes.length} pacientes cargados`);
+      
+      // ✅ Verificar que los datos tienen la estructura correcta
+      if (listaPacientes.length > 0) {
+        const primerPaciente = listaPacientes[0];
+        console.log("📋 Primer paciente:", primerPaciente);
+        console.log("📋 Campos disponibles:", Object.keys(primerPaciente));
+      }
+      
       setRows(listaPacientes);
     } catch (err) {
       console.warn("⚠️ Error en fetchTodos:", err.message);
       
       if (retries < 3) {
         console.log(`🔄 Reintentando cargar pacientes (${retries + 1}/3)...`);
-        await new Promise(r => setTimeout(r, 3000 * (retries + 1))); // Delay progresivo
+        await new Promise(r => setTimeout(r, 3000 * (retries + 1)));
         return fetchTodos(retries + 1);
       }
       
-      console.error("❌ No se pudo cargar la lista de pacientes después de varios intentos");
+      console.error("❌ No se pudo cargar la lista de pacientes");
       setRows([]);
       alert("No se pudo conectar con el servidor. Intenta recargar la página.");
     } finally {
@@ -70,14 +80,54 @@ const PacienteCRUD = () => {
   // ======================================================
   const fetchByCedula = async (cedula, retries = 0) => {
     setIsLoading(true);
+    
+    const cedulaLimpia = cedula.toString().trim();
+    console.log(`🔍 Buscando paciente con cédula: "${cedulaLimpia}"`);
+    
     try {
-      // ✅ CORREGIDO: Cambiar la ruta del backend
-      const res = await fetch(`${API_BASE_URL}/paciente/historial/${cedula}`); // ← CAMBIÉ ESTA LÍNEA
+      // PRIMERO: Intentar con endpoint de paciente directo
+      const res = await fetch(`${API_BASE_URL}/paciente/${cedulaLimpia}`);
       
-      // Si es 404, el paciente no existe
       if (res.status === 404) {
-        alert(`❌ No se encontró ningún paciente con la cédula: ${cedula}`);
-        setRows([]);
+        // SEGUNDO: Si no funciona, probar con endpoint de historial
+        console.log("⚠️ No encontrado en /paciente/, intentando /paciente/historial/");
+        const resHistorial = await fetch(`${API_BASE_URL}/paciente/historial/${cedulaLimpia}`);
+        
+        if (resHistorial.status === 404) {
+          alert(`❌ No se encontró ningún paciente con la cédula: ${cedulaLimpia}`);
+          setRows([]);
+          return;
+        }
+
+        if (!resHistorial.ok) {
+          throw new Error(`Error ${resHistorial.status}: ${resHistorial.statusText}`);
+        }
+
+        const historialData = await resHistorial.json();
+        console.log("📊 Respuesta de historial:", historialData);
+        
+        // Extraer paciente del historial
+        let pacienteEncontrado = null;
+        
+        if (historialData.ok && historialData.paciente) {
+          // Caso: {ok: true, paciente: {...}}
+          pacienteEncontrado = historialData.paciente;
+        } else if (historialData.data && historialData.data.paciente) {
+          // Caso: {data: {paciente: {...}}}
+          pacienteEncontrado = historialData.data.paciente;
+        } else if (historialData.V6NumID) {
+          // Caso: El objeto paciente viene directamente
+          pacienteEncontrado = historialData;
+        }
+        
+        if (pacienteEncontrado) {
+          console.log("✅ Paciente encontrado en historial:", pacienteEncontrado);
+          setRows([pacienteEncontrado]);
+          alert(`✅ Paciente encontrado: ${pacienteEncontrado.V1PrimerNom || ''} ${pacienteEncontrado.V3PrimerApe || ''}`);
+        } else {
+          alert(`❌ No se encontró información válida para la cédula: ${cedulaLimpia}`);
+          setRows([]);
+        }
         return;
       }
 
@@ -85,55 +135,96 @@ const PacienteCRUD = () => {
         throw new Error(`Error ${res.status}: ${res.statusText}`);
       }
 
-      const data = await res.json();
-      console.log("📊 Respuesta de historial:", data);
+      const responseData = await res.json();
+      console.log("📊 Respuesta de paciente:", responseData);
 
-      // ✅ CORREGIDO: Manejo correcto de la respuesta del servicio de pacientes
-      if (data.ok && data.data && data.data.paciente) {
-        // Mostrar solo el paciente principal en un array
-        const pacientes = [data.data.paciente];
-        setRows(pacientes);
-        
-        alert(`✅ Paciente encontrado: ${data.data.paciente.V1PrimerNom} ${data.data.paciente.V3PrimerApe}`);
+      // Manejo de la respuesta del endpoint /paciente/:cedula
+      let pacienteEncontrado = null;
+      
+      if (responseData && responseData.V6NumID) {
+        // Caso: El objeto paciente viene directamente
+        pacienteEncontrado = responseData;
+      } else if (responseData.ok && responseData.data && responseData.data.V6NumID) {
+        // Caso: {ok: true, data: {...}}
+        pacienteEncontrado = responseData.data;
+      } else if (responseData.data && responseData.data.V6NumID) {
+        // Caso: {data: {...}}
+        pacienteEncontrado = responseData.data;
+      }
+
+      if (pacienteEncontrado) {
+        console.log("✅ Paciente encontrado en /paciente/:cedula:", pacienteEncontrado);
+        setRows([pacienteEncontrado]);
+        alert(`✅ Paciente encontrado: ${pacienteEncontrado.V1PrimerNom || ''} ${pacienteEncontrado.V3PrimerApe || ''}`);
       } else {
-        alert(`❌ No se encontró información válida para la cédula: ${cedula}`);
+        alert(`❌ No se encontró información para la cédula: ${cedulaLimpia}`);
         setRows([]);
       }
     } catch (err) {
-      console.warn("⚠️ Error en fetchByCedula:", err.message);
-      
+      console.error("❌ Error en fetchByCedula:", err);
+        
       if (retries < 2) {
         console.log(`🔄 Reintentando búsqueda (${retries + 1}/2)...`);
-        await new Promise(r => setTimeout(r, 3000));
+        await new Promise(r => setTimeout(r, 2000 * (retries + 1)));
         return fetchByCedula(cedula, retries + 1);
       }
-      
-      alert("❌ Error al consultar paciente. Verifica tu conexión e intenta nuevamente.");
+        
+      alert("❌ Error al consultar paciente. Verifica tu conexión.");
       setRows([]);
     } finally {
       setIsLoading(false);
     }
   };
 
+// ✅ Función auxiliar para buscar por historial
+const buscarPorHistorial = async (cedula) => {
+  try {
+    const res = await fetch(`${API_BASE_URL}/paciente/historial/${cedula}`);
+    
+    if (res.status === 404) {
+      alert(`❌ No se encontró ningún paciente con la cédula: ${cedula}`);
+      setRows([]);
+      return;
+    }
+
+    if (!res.ok) throw new Error(`Error ${res.status}: ${res.statusText}`);
+
+    const data = await res.json();
+    console.log("📊 Respuesta de historial:", data);
+
+    // ✅ CORREGIDO: Según tu backend, el paciente está en data.paciente
+    if (data.ok && data.paciente) {
+      setRows([data.paciente]);
+      alert(`✅ Paciente encontrado: ${data.paciente.V1PrimerNom || ''} ${data.paciente.V3PrimerApe || ''}`);
+    } else {
+      alert(`❌ No se encontró información válida para la cédula: ${cedula}`);
+      setRows([]);
+    }
+  } catch (err) {
+    console.error("❌ Error en buscarPorHistorial:", err);
+    throw err;
+  }
+};
+
   // ======================================================
   // 🔍 BOTÓN BUSCAR - MANTENIDO
   // ======================================================
   const handleSearch = (e) => {
     if (e) e.preventDefault();
-    const cedula = cedulaRef.current?.value?.trim();
+    const inputCedula = cedulaRef.current?.value?.trim();
     
-    if (!cedula) {
+    if (!inputCedula) {
       alert("⚠️ Por favor, ingresa un número de cédula para buscar.");
       return;
     }
     
-    if (!/^\d+$/.test(cedula)) {
+    if (!/^\d+$/.test(inputCedula)) {
       alert("❌ Por favor, ingresa solo números para la cédula.");
       return;
     }
     
-    console.log(`🔍 Buscando cédula: ${cedula}`);
-    fetchByCedula(cedula);
+    console.log(`🔍 Buscando cédula: ${inputCedula}`);
+    fetchByCedula(inputCedula);
   };
 
   // ======================================================

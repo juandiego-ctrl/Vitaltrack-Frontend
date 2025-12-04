@@ -14,7 +14,7 @@ const campos = [
   { name: "V3PrimerApe", label: "Primer Apellido*", tab: 0, obligatorio: true },
   { name: "V4SegundoApe", label: "Segundo Apellido", tab: 0 },
   { name: "V5TipoID", label: "Tipo ID*", tab: 0, obligatorio: true },
-  { name: "V6NumId", label: "Número ID*", tab: 0, obligatorio: true },
+  { name: "V6NumID", label: "Número ID*", tab: 0, obligatorio: true },
   { name: "V7FecNac", label: "Fecha Nacimiento*", tab: 0, type: "date", obligatorio: true },
   { name: "V8Sexo", label: "Sexo", tab: 0 },
   { name: "V9Ocup", label: "Ocupación", tab: 0 },
@@ -169,76 +169,182 @@ const campos = [
   { name: "V110CodIPSTrasplanteCM", label: "Cod IPS Trasplante", tab: 6 },
 ];
 
+// ====================== Funciones auxiliares ======================
+const limpiarPayload = (data) => {
+  const limpio = { ...data };
+  
+  // Eliminar campos vacíos o convertir null/undefined a string vacío
+  Object.keys(limpio).forEach(key => {
+    if (limpio[key] === null || limpio[key] === undefined || limpio[key] === 'Invalid Date') {
+      limpio[key] = "";
+    }
+    
+    // Si es string, eliminar espacios en blanco
+    if (typeof limpio[key] === 'string') {
+      limpio[key] = limpio[key].trim();
+    }
+  });
+  
+  return limpio;
+};
+
+const transformarFechas = (data) => {
+  const transformado = { ...data };
+  
+  // Identificar todos los campos tipo 'date'
+  const camposFecha = campos.filter(c => c.type === 'date');
+  
+  // Transformar cada campo fecha
+  camposFecha.forEach(campoFecha => {
+    const valor = transformado[campoFecha.name];
+    
+    if (valor && valor.trim() !== "") {
+      try {
+        const fecha = new Date(valor);
+        if (!isNaN(fecha.getTime())) {
+          // Formato ISO para el backend
+          transformado[campoFecha.name] = fecha.toISOString();
+        } else {
+          transformado[campoFecha.name] = "";
+        }
+      } catch (error) {
+        console.warn(`Error al transformar fecha ${campoFecha.name}:`, error);
+        transformado[campoFecha.name] = "";
+      }
+    } else {
+      transformado[campoFecha.name] = "";
+    }
+  });
+  
+  // Asegurar FechaIngreso si está vacío
+  if (!transformado.FechaIngreso || transformado.FechaIngreso.trim() === "") {
+    transformado.FechaIngreso = new Date().toISOString();
+  }
+  
+  return transformado;
+};
+
 // ====================== Componente ======================
 const CrearUsuario = () => {
   const initialState = Object.fromEntries(campos.map(c => [c.name, ""]));
   const [form, setForm] = useState(initialState);
   const [activeTab, setActiveTab] = useState(0);
   const [errores, setErrores] = useState({});
+  const [cargando, setCargando] = useState(false);
+  const [errorBackend, setErrorBackend] = useState(null);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm({ ...form, [name]: value });
     if (errores[name]) setErrores({ ...errores, [name]: false });
+    if (errorBackend) setErrorBackend(null);
   };
 
   const validarCampos = () => {
     const nuevosErrores = {};
     campos.forEach(c => {
-      if (c.obligatorio && !form[c.name]) nuevosErrores[c.name] = true;
+      if (c.obligatorio && !form[c.name]?.trim()) {
+        nuevosErrores[c.name] = true;
+      }
     });
     return nuevosErrores;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setCargando(true);
+    setErrorBackend(null);
 
+    // Validar campos obligatorios
     const camposFaltantes = validarCampos();
     if (Object.keys(camposFaltantes).length > 0) {
       setErrores(camposFaltantes);
       const tabIndex = campos.find((c) => camposFaltantes[c.name])?.tab || 0;
       setActiveTab(tabIndex);
       alert("Faltan campos obligatorios. Revisa los campos resaltados.");
+      setCargando(false);
       return;
     }
 
-    const payload = {
-      ...form,
-      V7FecNac: form.V7FecNac ? new Date(form.V7FecNac).toISOString() : null,
-      V16FecAfiliacion: form.V16FecAfiliacion
-        ? new Date(form.V16FecAfiliacion).toISOString()
-        : null,
-      FechaIngreso: form.FechaIngreso
-        ? new Date(form.FechaIngreso).toISOString()
-        : new Date().toISOString(),
-    };
-
     try {
-      const res = await crearPaciente(payload);
-      console.log("Respuesta del backend:", res);
+      // Limpiar y transformar datos
+      const datosLimpios = limpiarPayload(form);
+      const payload = transformarFechas(datosLimpios);
 
-      if (res.ok) {
+      console.log("📤 Enviando payload al backend:", payload);
+
+      // Enviar al backend
+      const res = await crearPaciente(payload);
+      console.log("✅ Respuesta del backend:", res);
+
+      if (res.ok || res.status === 200 || res.status === 201) {
         alert("Usuario creado correctamente ✅");
         setForm(initialState);
         setErrores({});
         setActiveTab(0);
       } else {
-        alert("Error: no se pudo crear el paciente (ver backend).");
+        throw new Error(`Error ${res.status}: ${res.statusText}`);
       }
     } catch (err) {
-      console.error("Error al crear paciente:", err);
-      alert("Error al crear usuario ❌");
+      console.error("❌ Error al crear paciente:", err);
+      
+      // Manejar errores de Axios con más detalle
+      if (err.response) {
+        const { status, data } = err.response;
+        console.error("Detalles del error del backend:", data);
+        
+        let mensajeError = `Error ${status}: `;
+        
+        if (data && typeof data === 'object') {
+          // Intentar extraer mensaje específico del backend
+          if (data.message) {
+            mensajeError += data.message;
+          } else if (data.error) {
+            mensajeError += data.error;
+          } else if (Array.isArray(data.errors)) {
+            mensajeError += data.errors.join(', ');
+          } else {
+            mensajeError += JSON.stringify(data);
+          }
+        } else if (data) {
+          mensajeError += data;
+        } else {
+          mensajeError += "Error en el servidor";
+        }
+        
+        setErrorBackend(mensajeError);
+        alert(mensajeError);
+      } else if (err.request) {
+        // Error de red
+        setErrorBackend("Error de conexión. Verifica tu red e intenta nuevamente.");
+        alert("Error de conexión. Verifica tu red e intenta nuevamente.");
+      } else {
+        // Error en la configuración de la petición
+        setErrorBackend(err.message);
+        alert(`Error: ${err.message}`);
+      }
+    } finally {
+      setCargando(false);
     }
   };
 
-
-  const inputClass = (campo) => errores[campo] ? styles.inputError : "";
+  const inputClass = (campo) => 
+    errores[campo] 
+      ? `${styles.inputError} ${styles.inputField}` 
+      : styles.inputField;
 
   return (
     <div className={styles.backgroundCrearUsuario}>
       <IconosFlotantes />
       <div className={styles["crear-usuario-container"]}>
         <h2>Crear Nuevo Usuario</h2>
+        
+        {errorBackend && (
+          <div className={styles.errorMessage}>
+            <strong>Error del backend:</strong> {errorBackend}
+          </div>
+        )}
+        
         <form onSubmit={handleSubmit}>
           <Tabs selectedIndex={activeTab} onSelect={setActiveTab}>
             <TabList>
@@ -253,22 +359,59 @@ const CrearUsuario = () => {
 
             {[...Array(7)].map((_, i) => (
               <TabPanel key={i}>
-                {campos.filter(c => c.tab === i).map(c => (
-                  <input
-                    key={c.name}
-                    name={c.name}
-                    type={c.type || "text"}
-                    placeholder={c.label}
-                    value={form[c.name]}
-                    onChange={handleChange}
-                    className={inputClass(c.name)}
-                  />
-                ))}
+                <div className={styles.formGrid}>
+                  {campos.filter(c => c.tab === i).map(c => (
+                    <div key={c.name} className={styles.inputGroup}>
+                      <label htmlFor={c.name}>
+                        {c.label}
+                        {c.obligatorio && <span className={styles.required}>*</span>}
+                      </label>
+                      <input
+                        id={c.name}
+                        name={c.name}
+                        type={c.type || "text"}
+                        placeholder={c.label}
+                        value={form[c.name]}
+                        onChange={handleChange}
+                        className={inputClass(c.name)}
+                        disabled={cargando}
+                      />
+                      {errores[c.name] && (
+                        <span className={styles.errorText}>
+                          Este campo es obligatorio
+                        </span>
+                      )}
+                    </div>
+                  ))}
+                </div>
               </TabPanel>
             ))}
           </Tabs>
 
-          <button type="submit" className={styles["submit-btn"]}>Crear Usuario</button>
+          <div className={styles.formActions}>
+            <button 
+              type="submit" 
+              className={styles["submit-btn"]}
+              disabled={cargando}
+            >
+              {cargando ? "Creando..." : "Crear Usuario"}
+            </button>
+            
+            <button 
+              type="button" 
+              className={styles["reset-btn"]}
+              onClick={() => {
+                if (window.confirm("¿Estás seguro de limpiar todos los campos?")) {
+                  setForm(initialState);
+                  setErrores({});
+                  setErrorBackend(null);
+                }
+              }}
+              disabled={cargando}
+            >
+              Limpiar Formulario
+            </button>
+          </div>
         </form>
       </div>
     </div>

@@ -1,13 +1,16 @@
+/* src/styles/CrearUsuario.module.css */
+
+/* Contenedor principal */
 .crear-usuario-container {
-  max-width: 800px;        /* 📌 Limita el ancho máximo */
-  margin: 2rem auto;       /* 📌 Centrado horizontal y con espacio arriba/abajo */
+  max-width: 800px;
+  margin: 2rem auto;
   background: #4FBEEA;
   padding: 2rem;
   border-radius: 12px;
-  box-shadow: 0px 6px 20px rgba(0,0,0,0.10);
+  box-shadow: 0px 6px 20px rgba(0, 0, 0, 0.10);
 }
 
-/* Centrar título */
+/* Título */
 .crear-usuario-container h2 {
   text-align: center;
   margin-bottom: 1.5rem;
@@ -16,21 +19,12 @@
   font-weight: 600;
 }
 
-fieldset {
-  border: 1px solid #e0e0e0;
-  padding: 1.5rem 1rem 1rem 1rem; /* más espacio arriba */
-  margin-bottom: 1.5rem;
-  border-radius: 8px;
-  background: #fff;
-  position: relative;
-}
-
+/* Campos del formulario */
 .fieldset-title {
   font-size: 1.2rem;
   font-weight: bold;
   color: #000;
-  margin-bottom: 1rem;   /* separa el título de los inputs */
-  margin-top: -0.5rem;   /* lo sube un poco hacia arriba */
+  margin-bottom: 1rem;
 }
 
 legend {
@@ -41,66 +35,141 @@ legend {
   padding: 0 6px;
 }
 
+/* Layout del formulario */
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
 
-/* Inputs más compactos */
-input, select {
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Inputs y selects */
+input,
+select,
+.inputField {
   display: block;
   width: 100%;
   margin: 0.5rem 0;
-  padding: 10px 14px;
-  border: 1px solid #ccc;
+  padding: 0.75rem;
+  border: 1px solid #dbdbdb;
   border-radius: 6px;
-  font-size: 0.95rem;
+  font-size: 1rem;
   transition: all 0.3s;
+  box-sizing: border-box;
 }
 
-input:focus, select:focus {
-  border: 1px solid #007bff;
+input:focus,
+select:focus,
+.inputField:focus {
   outline: none;
-  box-shadow: 0 0 5px rgba(0,123,255,0.3);
+  border-color: #3273dc;
+  box-shadow: 0 0 0 0.125em rgba(50, 115, 220, 0.25);
 }
 
-/* Botón */
-.submit-btn {
-  background: #ffffff;
-  color: #000;
-  padding: 12px;
-  border: none;
+/* Estados de error */
+.inputError {
+  border: 2px solid #ff3860 !important;
+  background-color: #fff5f5;
+}
+
+.errorText {
+  color: #ff3860;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
+.errorMessage {
+  background-color: #ff3860;
+  color: white;
+  padding: 1rem;
+  border-radius: 4px;
+  margin-bottom: 1.5rem;
+  font-size: 0.9rem;
+}
+
+.required {
+  color: #ff3860;
+  margin-left: 0.25rem;
+}
+
+/* Botones */
+.formActions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 2rem;
+  justify-content: center;
+}
+
+.submit-btn,
+.reset-btn,
+.back-btn {
+  padding: 1rem 2rem;
   border-radius: 8px;
-  cursor: pointer;
-  width: 100%;
   font-size: 1rem;
   font-weight: bold;
-  transition: background 0.3s, transform 0.1s;
+  cursor: pointer;
+  transition: all 0.3s;
+  border: none;
+  text-align: center;
 }
 
-.submit-btn:hover {
-  background: #0056b3;
+.submit-btn {
+  background-color: #3273dc;
+  color: white;
+}
+
+.submit-btn:hover:not(:disabled) {
+  background-color: #276cda;
   transform: scale(1.02);
 }
 
+.submit-btn:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.reset-btn {
+  background-color: #f5f5f5;
+  color: #363636;
+  border: 1px solid #dbdbdb;
+}
+
+.reset-btn:hover:not(:disabled) {
+  background-color: #e8e8e8;
+  transform: scale(1.02);
+}
+
+.reset-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
 .back-btn {
-  margin-top: 1rem;
   background: #ffffff;
   color: #000;
-  padding: 10px 20px;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
+  margin-top: 1rem;
   width: 100%;
-  font-size: 16px;
-  font-weight: bold;
-  transition: background 0.3s;
 }
 
 .back-btn:hover {
   background: #0056b3;
+  color: white;
   transform: scale(1.02);
 }
 
-.inputError {
-  border: 2px solid red;
-  background-color: #ffe6e6;
+/* Elementos legacy (si aún se usan) */
+fieldset {
+  border: 1px solid #e0e0e0;
+  padding: 1.5rem 1rem 1rem 1rem;
+  margin-bottom: 1.5rem;
+  border-radius: 8px;
+  background: #fff;
+  position: relative;
 }
-
-
