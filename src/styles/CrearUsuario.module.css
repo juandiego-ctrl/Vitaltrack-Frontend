@@ -2,9 +2,9 @@
 
 /* Contenedor principal */
 .crear-usuario-container {
-  max-width: 800px;
+  width: 80%;
   margin: 2rem auto;
-  background: #4FBEEA;
+  background: #FFFFFF;
   padding: 2rem;
   border-radius: 12px;
   box-shadow: 0px 6px 20px rgba(0, 0, 0, 0.10);
@@ -41,6 +41,9 @@ legend {
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 1.5rem;
   margin-top: 1.5rem;
+  background: #4FBEEA;
+  padding: 1.5rem;
+  border-radius: 8px;
 }
 
 .inputGroup {
@@ -61,6 +64,8 @@ select,
   font-size: 1rem;
   transition: all 0.3s;
   box-sizing: border-box;
+  background: #FFFFFF;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 input:focus,
@@ -68,7 +73,7 @@ select:focus,
 .inputField:focus {
   outline: none;
   border-color: #3273dc;
-  box-shadow: 0 0 0 0.125em rgba(50, 115, 220, 0.25);
+  box-shadow: 0 0 0 0.125em rgba(50, 115, 220, 0.25), 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 /* Estados de error */
@@ -116,33 +121,25 @@ select:focus,
   transition: all 0.3s;
   border: none;
   text-align: center;
-}
-
-.submit-btn {
-  background-color: #3273dc;
+  background-color: #4FBEEA;
   color: white;
+  min-width: 150px;
 }
 
-.submit-btn:hover:not(:disabled) {
-  background-color: #276cda;
+.submit-btn:hover:not(:disabled),
+.reset-btn:hover:not(:disabled),
+.back-btn:hover {
+  background-color: #FFFFFF;
+  color: #4FBEEA;
   transform: scale(1.02);
+  border: 1px solid #4FBEEA;
 }
 
 .submit-btn:disabled {
   background-color: #ccc;
   cursor: not-allowed;
   transform: none;
-}
-
-.reset-btn {
-  background-color: #f5f5f5;
-  color: #363636;
-  border: 1px solid #dbdbdb;
-}
-
-.reset-btn:hover:not(:disabled) {
-  background-color: #e8e8e8;
-  transform: scale(1.02);
+  color: white;
 }
 
 .reset-btn:disabled {
@@ -151,17 +148,50 @@ select:focus,
   transform: none;
 }
 
-.back-btn {
-  background: #ffffff;
-  color: #000;
-  margin-top: 1rem;
-  width: 100%;
+/* Estilos para react-tabs */
+.react-tabs__tab-list {
+  display: flex;
+  margin: 0 0 1.5rem 0;
+  padding: 0;
+  border-bottom: 2px solid #e0e0e0;
+  background: #f8f9fa;
+  border-radius: 8px 8px 0 0;
+  overflow: hidden;
 }
 
-.back-btn:hover {
-  background: #0056b3;
+.react-tabs__tab {
+  flex: 1;
+  list-style: none;
+  padding: 12px 16px;
+  cursor: pointer;
+  text-align: center;
+  background: #e9ecef;
+  border: none;
+  border-right: 1px solid #dee2e6;
+  transition: all 0.3s ease;
+  font-weight: 500;
+  color: #495057;
+}
+
+.react-tabs__tab:last-child {
+  border-right: none;
+}
+
+.react-tabs__tab:hover {
+  background: #4FBEEA;
   color: white;
-  transform: scale(1.02);
+}
+
+.react-tabs__tab--selected {
+  background: #4FBEEA;
+  color: white;
+  position: relative;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.react-tabs__tab-panel {
+  padding: 1rem 0;
 }
 
 /* Elementos legacy (si aún se usan) */

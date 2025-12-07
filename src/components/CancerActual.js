@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from '../styles/CancerActual.module.css';
 import ModalPaciente from './ModalPaciente';
+import IconosFlotantes from './IconosFlotantes';
 
 const API_BASE_URL = "https://vitaltrack-backend-v5el.onrender.com";
 
@@ -280,7 +281,9 @@ const buscarPorHistorial = async (cedula) => {
   // 🖥 RENDER - MANTENIDO
   // ======================================================
   return (
-    <div className={styles.container}>
+    <div className={styles.background}>
+      <IconosFlotantes />
+      <div className={styles.container}>
       <h1>Gestión de Pacientes - Sistema Oncológico</h1>
 
       {isLoading && (
@@ -318,23 +321,11 @@ const buscarPorHistorial = async (cedula) => {
         </button>
       </div>
 
-      {/* Información de resultados */}
-      {rows.length > 0 && (
-        <div style={{ 
-          marginBottom: '15px', 
-          padding: '10px', 
-          backgroundColor: '#e7f3ff', 
-          borderRadius: '6px',
-          border: '1px solid #b3d9ff'
-        }}>
-          <strong>📊 Resultados de la búsqueda:</strong> {rows.length} paciente(s) encontrado(s)
-        </div>
-      )}
 
       {/* Tabla de resultados */}
       {rows.length > 0 ? (
         <div className={styles.tableContainer}>
-          <table className={styles.resultsTable}>
+          <table className={styles.table}>
             <thead>
               <tr>
                 <th>#</th>
@@ -431,6 +422,7 @@ const buscarPorHistorial = async (cedula) => {
           }}
         />
       )}
+      </div>
     </div>
   );
 };

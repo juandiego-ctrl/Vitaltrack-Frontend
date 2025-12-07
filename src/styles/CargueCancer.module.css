@@ -1,9 +1,16 @@
+.background {
+  position: relative;
+}
+
 .container {
+  width: 80%;
+  margin: 50px auto 0;
   padding: 20px;
   font-family: Arial, sans-serif;
   background-color: #faf7f0;
   padding: 20px 40px;
-  margin-top:50px ;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .title {

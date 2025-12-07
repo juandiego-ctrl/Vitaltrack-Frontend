@@ -4,6 +4,7 @@ import { FaQuestionCircle } from 'react-icons/fa';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 import { useNavigate } from "react-router-dom";
+import IconosFlotantes from './IconosFlotantes';
 
 const CargueCancer = () => {
   const navigate = useNavigate();
@@ -116,7 +117,22 @@ const CargueCancer = () => {
       console.log('📤 Respuesta del servidor:', data);
 
       if (data.ok) {
-        alert(`✅ ${data.mensaje}`);
+        // ✅ NUEVO: Mostrar detalles del procesamiento
+        const resultados = data.detalles?.resultados || {};
+        alert(`✅ ${data.mensaje}
+
+📊 Resumen del procesamiento:
+• Pacientes: ${resultados.pacientes || 0}
+• Diagnósticos: ${resultados.diagnosticos || 0}
+• Antecedentes: ${resultados.antecedentes || 0}
+• Quimioterapias: ${resultados.tratamientos?.quimioterapia || 0}
+• Radioterapias: ${resultados.tratamientos?.radioterapia || 0}
+• Cirugías: ${resultados.tratamientos?.cirugia || 0}
+• Trasplantes: ${resultados.tratamientos?.trasplante || 0}
+• Cuidados Paliativos: ${resultados.tratamientos?.paliativos || 0}
+
+${resultados.errores?.length > 0 ? `⚠️ Errores: ${resultados.errores.length}` : ''}`);
+
         // Recargar la lista después de cargar
         fetchTodos();
       } else {
@@ -232,8 +248,16 @@ const CargueCancer = () => {
             <h4>Instrucciones:</h4>
             <ol>
               <li>Ingresa el número de documento del titular</li>
-              <li>Selecciona un archivo Excel con los datos de los pacientes</li>
-              <li>Haz clic en "Cargar" para subir el archivo</li>
+              <li>Selecciona un archivo Excel con datos completos de pacientes oncológicos</li>
+              <li>Haz clic en "Cargar" para procesar automáticamente:
+                  <ul>
+                    <li>✅ Datos básicos del paciente</li>
+                    <li>✅ Información diagnóstica</li>
+                    <li>✅ Antecedentes médicos</li>
+                    <li>✅ Tratamientos (quimioterapia, radioterapia, cirugía, etc.)</li>
+                  </ul>
+              </li>
+              <li>Revisa el resumen detallado del procesamiento</li>
               <li>Usa la búsqueda para consultar pacientes específicos</li>
             </ol>
           </div>
@@ -259,7 +283,9 @@ const CargueCancer = () => {
   };
 
   return (
-    <div className={styles.container}>
+    <div className={styles.background}>
+      <IconosFlotantes />
+      <div className={styles.container}>
       <h1 className={styles.title}>Gestión de Pacientes Oncológicos</h1>
 
       {isLoading && (
@@ -354,30 +380,11 @@ const CargueCancer = () => {
         </form>
       </div>
 
-      {/* Información de resultados */}
-      {rows.length > 0 && (
-        <div className={styles.resultsInfo}>
-          <strong>📊 Pacientes encontrados:</strong> {rows.length} registro(s)
-          <button 
-            onClick={() => {
-              setRows([]);
-              setShowTable(false);
-              setDocumento('');
-            }} 
-            className={styles.clearButton}
-          >
-            ✕ Limpiar
-          </button>
-        </div>
-      )}
+
 
       {/* Tabla de Pacientes */}
       {showTable && rows.length > 0 && (
         <div className={styles.tableContainer}>
-          <div className={styles.tableHeader}>
-            <h3>📋 Lista de Pacientes</h3>
-            <span className={styles.countBadge}>{rows.length}</span>
-          </div>
           <table className={styles.table}>
             <thead>
               <tr>
@@ -418,6 +425,7 @@ const CargueCancer = () => {
           📭 No se encontraron registros. Intenta cargar un archivo Excel o realizar una búsqueda.
         </div>
       )}
+      </div>
     </div>
   );
 };

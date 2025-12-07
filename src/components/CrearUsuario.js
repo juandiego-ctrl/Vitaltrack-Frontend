@@ -1,5 +1,6 @@
 // src/components/CrearUsuario.jsx
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Tab, Tabs, TabList, TabPanel } from "react-tabs";
 import "react-tabs/style/react-tabs.css";
 import styles from "../styles/CrearUsuario.module.css";
@@ -226,6 +227,7 @@ const transformarFechas = (data) => {
 
 // ====================== Componente ======================
 const CrearUsuario = () => {
+  const navigate = useNavigate();
   const initialState = Object.fromEntries(campos.map(c => [c.name, ""]));
   const [form, setForm] = useState(initialState);
   const [activeTab, setActiveTab] = useState(0);
@@ -389,16 +391,24 @@ const CrearUsuario = () => {
           </Tabs>
 
           <div className={styles.formActions}>
-            <button 
-              type="submit" 
+            <button
+              type="button"
+              className={styles["back-btn"]}
+              onClick={() => navigate(-1)}
+            >
+              ⬅️ Regresar
+            </button>
+
+            <button
+              type="submit"
               className={styles["submit-btn"]}
               disabled={cargando}
             >
               {cargando ? "Creando..." : "Crear Usuario"}
             </button>
-            
-            <button 
-              type="button" 
+
+            <button
+              type="button"
               className={styles["reset-btn"]}
               onClick={() => {
                 if (window.confirm("¿Estás seguro de limpiar todos los campos?")) {
