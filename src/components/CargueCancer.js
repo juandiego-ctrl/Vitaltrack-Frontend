@@ -92,26 +92,35 @@ const CargueCancer = () => {
 
   // 📤 Cargar archivo Excel al backend - CORREGIDO
   const handleFileUpload = async () => {
+    console.log('🚀 Iniciando carga de archivo...');
+    console.log('Archivo seleccionado:', selectedFile);
+    console.log('Documento:', documento);
+
     if (!selectedFile) {
       alert('Por favor, selecciona un archivo Excel antes de cargar.');
       return;
     }
 
-    if (!documento) {
-      alert('Por favor, ingresa el número de documento del titular para asociar los pacientes.');
-      return;
-    }
+    // Opcional: si no hay documento, usar un valor por defecto o permitir sin él
+    // if (!documento) {
+    //   alert('Por favor, ingresa el número de documento del titular para asociar los pacientes.');
+    //   return;
+    // }
 
     try {
       setIsLoading(true);
       const formData = new FormData();
       formData.append('file', selectedFile);
 
+      console.log('📤 Enviando a:', `${BACKEND_URL}/excelarchivo/cargar-pacientes`);
+
       // CORREGIDO: Usar la ruta correcta del backend
-      const response = await fetch(`${BACKEND_URL}/excelarchivo/cargar-pacientes/${documento}`, {
+      const response = await fetch(`${BACKEND_URL}/excelarchivo/cargar-pacientes`, {
         method: 'POST',
         body: formData,
       });
+
+      console.log('📡 Respuesta HTTP:', response.status, response.statusText);
 
       const data = await response.json();
       console.log('📤 Respuesta del servidor:', data);
@@ -140,7 +149,7 @@ ${resultados.errores?.length > 0 ? `⚠️ Errores: ${resultados.errores.length}
       }
     } catch (error) {
       console.error('❌ Error al cargar el archivo:', error);
-      alert('No se pudo conectar con el servidor. Verifica tu conexión.');
+      alert(`No se pudo conectar con el servidor. Error: ${error.message}`);
     } finally {
       setIsLoading(false);
     }
@@ -298,23 +307,23 @@ ${resultados.errores?.length > 0 ? `⚠️ Errores: ${resultados.errores.length}
         <div className={styles.leftButtons}>
           <label className={styles.fileInputLabel}>
             📁 Seleccionar archivo Excel
-            <input 
-              type="file" 
-              accept=".xlsx,.xls" 
-              onChange={handleFileSelect} 
-              className={styles.fileInput} 
+            <input
+              type="file"
+              accept=".xlsx,.xls"
+              onChange={handleFileSelect}
+              className={styles.fileInput}
             />
           </label>
-          <button 
-            className={styles.button1} 
+          <button
+            className={styles.button1}
             onClick={handleFileUpload}
-            disabled={!selectedFile || !documento || isLoading}
+            disabled={!selectedFile || isLoading}
           >
             {isLoading ? '📤 Cargando...' : '📤 Cargar'}
           </button>
           <button className={styles.button1} onClick={() => navigate(-1)}>↩️ Regresar</button>
-          <button 
-            className={styles.button1} 
+          <button
+            className={styles.button1}
             onClick={handleExport}
             disabled={rows.length === 0}
           >
@@ -328,6 +337,35 @@ ${resultados.errores?.length > 0 ? `⚠️ Errores: ${resultados.errores.length}
           </button>
         </div>
       </div>
+
+      {selectedFile && (
+        <div style={{
+          marginTop: '20px',
+          marginBottom: '10px',
+          padding: '12px 16px',
+          backgroundColor: '#e8f5e8',
+          border: '2px solid #4caf50',
+          borderRadius: '8px',
+          fontSize: '16px',
+          color: '#2e7d32',
+          fontWeight: '500',
+          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '8px',
+          maxWidth: '600px',
+          marginLeft: 'auto',
+          marginRight: 'auto'
+        }}>
+          <span style={{ fontSize: '18px' }}>📄</span>
+          <span>Archivo seleccionado:</span>
+          <strong style={{ color: '#1b5e20' }}>{selectedFile.name}</strong>
+          <span style={{ marginLeft: 'auto', fontSize: '12px', color: '#4caf50' }}>
+            ({(selectedFile.size / 1024).toFixed(1)} KB)
+          </span>
+        </div>
+      )}
 
       {/* Modal de ayuda */}
       {isHelpModalOpen && (
