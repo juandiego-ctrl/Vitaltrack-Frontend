@@ -13,6 +13,13 @@ export const crearPaciente = async (paciente) => {
   return res.data;
 };
 
+export const crearPacienteManual = async (data) => {
+  console.log("📤 Enviando paciente manual al backend:", data);
+  const res = await api.post("/paciente/manual", data);
+  console.log("📥 Respuesta backend:", res.data);
+  return res.data;
+};
+
 
 
 export const actualizarPaciente = async (id, data) => {

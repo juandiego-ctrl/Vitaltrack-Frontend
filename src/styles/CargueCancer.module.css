@@ -110,10 +110,13 @@
 
 .modal {
   background-color: white;
-  padding: 20px;
-  border-radius: 10px;
-  width: 400px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  padding: 0;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 800px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
   animation: fadeInModal 0.3s ease;
 }
 
@@ -147,42 +150,86 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  padding: 20px 24px;
+  background: linear-gradient(135deg, #007CBE 0%, #4FBEEA 100%);
+  color: white;
+  border-radius: 12px 12px 0 0;
+  margin: 0;
+}
+
+.modalHeader h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
 }
 
 .closeButton {
-  background-color: #dc3545;
+  background-color: rgba(255, 255, 255, 0.2);
   color: white;
-  border: none;
-  padding: 5px 10px;
-  border-radius: 5px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 8px 12px;
+  border-radius: 6px;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 16px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.closeButton:hover {
+  background-color: rgba(255, 255, 255, 0.3);
+  transform: scale(1.05);
 }
 
 .tabButtons {
   display: flex;
-  gap: 10px;
-  margin-bottom: 20px;
+  gap: 0;
+  margin: 0;
+  border-bottom: 1px solid #e1e5e9;
+  background-color: #f8f9fa;
+}
+
+.tabButtons::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background-color: #e1e5e9;
 }
 
 .tabButton {
-  padding: 10px 15px;
+  padding: 12px 20px;
   border: none;
-  border-radius: 5px;
+  border-radius: 0;
   cursor: pointer;
-  background-color: #cdfcf6;
+  background-color: transparent;
   font-size: 14px;
+  font-weight: 500;
+  color: #64748b;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.tabButton:hover {
+  background-color: rgba(0, 124, 190, 0.05);
+  color: #007CBE;
 }
 
 .activeTab {
-  background-color: #007CBE;
-  color: white;
+  background-color: #ffffff;
+  color: #007CBE;
+  border-bottom: 2px solid #007CBE;
+  font-weight: 600;
 }
 
 .tabContent {
-  font-size: 14px;
-  color: #333;
+  padding: 24px;
+  font-size: 15px;
+  color: #374151;
+  line-height: 1.6;
+  background-color: #ffffff;
 }
 
 /* Formulario debajo del cargue */
@@ -426,5 +473,103 @@
 
 .fileInput {
   display: none;
+}
+
+.paragraph {
+  margin-bottom: 24px;
+  font-size: 16px;
+  line-height: 1.7;
+  color: #374151;
+  text-align: justify;
+}
+
+.instructions {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  padding: 24px;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.instructions h4 {
+  margin: 0 0 16px 0;
+  color: #007CBE;
+  font-size: 18px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.instructions h4::before {
+  content: "🚀";
+  font-size: 20px;
+}
+
+.instructions ol {
+  margin: 0;
+  padding-left: 24px;
+}
+
+.instructions li {
+  margin-bottom: 12px;
+  color: #475569;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.instructions ul {
+  margin: 8px 0 16px 0;
+  padding-left: 24px;
+}
+
+.instructions ul li {
+  margin-bottom: 6px;
+  color: #64748b;
+  font-size: 14px;
+  position: relative;
+}
+
+.instructions ul li::before {
+  content: "✅";
+  color: #10b981;
+  font-weight: bold;
+  position: absolute;
+  left: -20px;
+  top: 0;
+}
+
+.documentsTab {
+  text-align: center;
+  padding: 20px;
+}
+
+.documentsTab h3 {
+  color: #007CBE;
+  margin-bottom: 20px;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.linkButton {
+  background: linear-gradient(135deg, #007CBE 0%, #4FBEEA 100%);
+  color: white;
+  border: none;
+  padding: 14px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  box-shadow: 0 2px 8px rgba(0, 124, 190, 0.3);
+}
+
+.linkButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 124, 190, 0.4);
 }
 

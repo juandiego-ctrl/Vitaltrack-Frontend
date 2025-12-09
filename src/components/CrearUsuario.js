@@ -5,7 +5,7 @@ import { Tab, Tabs, TabList, TabPanel } from "react-tabs";
 import "react-tabs/style/react-tabs.css";
 import styles from "../styles/CrearUsuario.module.css";
 import IconosFlotantes from "./IconosFlotantes";
-import { crearPaciente } from "../api/pacientes";
+import { crearPacienteManual } from "../api/pacientes";
 
 // ====================== Definición de todos los campos ======================
 const campos = [
@@ -173,32 +173,32 @@ const campos = [
 // ====================== Funciones auxiliares ======================
 const limpiarPayload = (data) => {
   const limpio = { ...data };
-  
+
   // Eliminar campos vacíos o convertir null/undefined a string vacío
   Object.keys(limpio).forEach(key => {
     if (limpio[key] === null || limpio[key] === undefined || limpio[key] === 'Invalid Date') {
       limpio[key] = "";
     }
-    
+
     // Si es string, eliminar espacios en blanco
     if (typeof limpio[key] === 'string') {
       limpio[key] = limpio[key].trim();
     }
   });
-  
+
   return limpio;
 };
 
 const transformarFechas = (data) => {
   const transformado = { ...data };
-  
+
   // Identificar todos los campos tipo 'date'
   const camposFecha = campos.filter(c => c.type === 'date');
-  
+
   // Transformar cada campo fecha
   camposFecha.forEach(campoFecha => {
     const valor = transformado[campoFecha.name];
-    
+
     if (valor && valor.trim() !== "") {
       try {
         const fecha = new Date(valor);
@@ -216,13 +216,110 @@ const transformarFechas = (data) => {
       transformado[campoFecha.name] = "";
     }
   });
-  
+
   // Asegurar FechaIngreso si está vacío
   if (!transformado.FechaIngreso || transformado.FechaIngreso.trim() === "") {
     transformado.FechaIngreso = new Date().toISOString();
   }
-  
+
   return transformado;
+};
+
+const estructurarPayload = (data) => {
+  const paciente = {};
+  const diagnosticos = [];
+  const antecedentes = [];
+  const quimioterapia = [];
+  const cirugia = [];
+  const radioterapia = [];
+  const paliativos = [];
+  const trasplante = [];
+
+  // Campos del paciente (tab 0)
+  const camposPaciente = campos.filter(c => c.tab === 0);
+  camposPaciente.forEach(campo => {
+    paciente[campo.name] = data[campo.name] || "";
+  });
+
+  // Diagnósticos (tab 1) - como array de objetos
+  const camposDiagnostico = campos.filter(c => c.tab === 1);
+  if (camposDiagnostico.some(c => data[c.name]?.trim())) {
+    const diag = {};
+    camposDiagnostico.forEach(campo => {
+      diag[campo.name] = data[campo.name] || "";
+    });
+    diagnosticos.push(diag);
+  }
+
+  // Antecedentes (tab 2) - como array de objetos
+  const camposAntecedente = campos.filter(c => c.tab === 2);
+  if (camposAntecedente.some(c => data[c.name]?.trim())) {
+    const ant = {};
+    camposAntecedente.forEach(campo => {
+      ant[campo.name] = data[campo.name] || "";
+    });
+    antecedentes.push(ant);
+  }
+
+  // Quimioterapia (tab 3) - como array de objetos
+  const camposQuimio = campos.filter(c => c.tab === 3);
+  if (camposQuimio.some(c => data[c.name]?.trim())) {
+    const quim = {};
+    camposQuimio.forEach(campo => {
+      quim[campo.name] = data[campo.name] || "";
+    });
+    quimioterapia.push(quim);
+  }
+
+  // Cirugía (tab 4) - como array de objetos
+  const camposCirugia = campos.filter(c => c.tab === 4);
+  if (camposCirugia.some(c => data[c.name]?.trim())) {
+    const cir = {};
+    camposCirugia.forEach(campo => {
+      cir[campo.name] = data[campo.name] || "";
+    });
+    cirugia.push(cir);
+  }
+
+  // Radioterapia (tab 5) - como array de objetos
+  const camposRadio = campos.filter(c => c.tab === 5);
+  if (camposRadio.some(c => data[c.name]?.trim())) {
+    const rad = {};
+    camposRadio.forEach(campo => {
+      rad[campo.name] = data[campo.name] || "";
+    });
+    radioterapia.push(rad);
+  }
+
+  // Paliativos y Trasplante (tab 6) - separar en arrays distintos
+  const camposPaliativos = campos.filter(c => c.tab === 6 && c.name.startsWith('V114'));
+  if (camposPaliativos.some(c => data[c.name]?.trim())) {
+    const pal = {};
+    camposPaliativos.forEach(campo => {
+      pal[campo.name] = data[campo.name] || "";
+    });
+    paliativos.push(pal);
+  }
+
+  const camposTrasplante = campos.filter(c => c.tab === 6 && c.name.startsWith('V106'));
+  if (camposTrasplante.some(c => data[c.name]?.trim())) {
+    const trans = {};
+    camposTrasplante.forEach(campo => {
+      trans[campo.name] = data[campo.name] || "";
+    });
+    trasplante.push(trans);
+  }
+
+  return {
+    paciente,
+    diagnosticos,
+    antecedentes,
+    quimioterapia,
+    cirugia,
+    radioterapia,
+    paliativos,
+    trasplante
+  };
 };
 
 // ====================== Componente ======================
@@ -271,12 +368,13 @@ const CrearUsuario = () => {
     try {
       // Limpiar y transformar datos
       const datosLimpios = limpiarPayload(form);
-      const payload = transformarFechas(datosLimpios);
+      const datosConFechas = transformarFechas(datosLimpios);
+      const payload = estructurarPayload(datosConFechas);
 
-      console.log("📤 Enviando payload al backend:", payload);
+      console.log("📤 Enviando payload estructurado al backend:", payload);
 
-      // Enviar al backend
-      const res = await crearPaciente(payload);
+      // Enviar al backend usando el endpoint manual
+      const res = await crearPacienteManual(payload);
       console.log("✅ Respuesta del backend:", res);
 
       if (res.ok || res.status === 200 || res.status === 201) {
@@ -289,14 +387,14 @@ const CrearUsuario = () => {
       }
     } catch (err) {
       console.error("❌ Error al crear paciente:", err);
-      
+
       // Manejar errores de Axios con más detalle
       if (err.response) {
         const { status, data } = err.response;
         console.error("Detalles del error del backend:", data);
-        
+
         let mensajeError = `Error ${status}: `;
-        
+
         if (data && typeof data === 'object') {
           // Intentar extraer mensaje específico del backend
           if (data.message) {
@@ -313,7 +411,7 @@ const CrearUsuario = () => {
         } else {
           mensajeError += "Error en el servidor";
         }
-        
+
         setErrorBackend(mensajeError);
         alert(mensajeError);
       } else if (err.request) {
@@ -330,9 +428,9 @@ const CrearUsuario = () => {
     }
   };
 
-  const inputClass = (campo) => 
-    errores[campo] 
-      ? `${styles.inputError} ${styles.inputField}` 
+  const inputClass = (campo) =>
+    errores[campo]
+      ? `${styles.inputError} ${styles.inputField}`
       : styles.inputField;
 
   return (
@@ -340,13 +438,13 @@ const CrearUsuario = () => {
       <IconosFlotantes />
       <div className={styles["crear-usuario-container"]}>
         <h2>Crear Nuevo Usuario</h2>
-        
+
         {errorBackend && (
           <div className={styles.errorMessage}>
             <strong>Error del backend:</strong> {errorBackend}
           </div>
         )}
-        
+
         <form onSubmit={handleSubmit}>
           <Tabs selectedIndex={activeTab} onSelect={setActiveTab}>
             <TabList>
