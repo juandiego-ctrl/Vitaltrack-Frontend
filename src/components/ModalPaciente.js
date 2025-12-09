@@ -336,7 +336,7 @@ const ModalPaciente = ({ documento, onClose }) => {
       try {
         const text = await res.text();
         if (text) responseData = JSON.parse(text);
-      } catch {}
+      } catch { }
 
       if (res.ok) {
         alert("Guardado exitoso");
@@ -439,11 +439,13 @@ const ModalPaciente = ({ documento, onClose }) => {
     { key: "V5TipoID", label: "Tipo ID", type: "text" },
     { key: "V6NumID", label: "Número ID", type: "text" },
     { key: "V7FecNac", label: "Fecha Nacimiento", type: "date" },
-    { key: "V8Sexo", label: "Sexo", type: "select", options: [
-      { value: "Masculino", label: "Masculino" },
-      { value: "Femenino", label: "Femenino" },
-      { value: "Otro", label: "Otro" }
-    ]},
+    {
+      key: "V8Sexo", label: "Sexo", type: "select", options: [
+        { value: "Masculino", label: "Masculino" },
+        { value: "Femenino", label: "Femenino" },
+        { value: "Otro", label: "Otro" }
+      ]
+    },
     { key: "V9Ocup", label: "Ocupación", type: "text" },
     { key: "V10RegAfiliacion", label: "Régimen Afiliación", type: "text" },
     { key: "V11CodEAPB", label: "Código EAPB", type: "text" },
@@ -665,15 +667,15 @@ const ModalPaciente = ({ documento, onClose }) => {
   // PESTAÑAS
   // ==============================================================
   const tabs = [
-    { key: "paciente", label: "Paciente", icon: "Person", count: 1 },
-    { key: "diagnosticos", label: "Diagnósticos", icon: "Stethoscope", count: data.diagnosticos?.length || 0 },
-    { key: "antecedentes", label: "Antecedentes", icon: "Clipboard", count: data.antecedentes?.length || 0 },
-    { key: "ttocx", label: "Quimioterapia", icon: "Syringe", count: data.ttocx?.length || 0 },
-    { key: "ttoqt", label: "Cirugía Oncológica", icon: "Scalpel", count: data.ttoqt?.length || 0 },
-    { key: "ttort", label: "Radioterapia", icon: "Radiation", count: data.ttort?.length || 0 },
-    { key: "ttotrasplante", label: "Trasplante", icon: "Heart", count: data.ttotrasplante?.length || 0 },
-    { key: "ttocxreconst", label: "Cirugía Reconst.", icon: "Redo", count: data.ttocxreconst?.length || 0 },
-    { key: "ttopaliativos", label: "Paliativos", icon: "Bandage", count: data.ttopaliativos?.length || 0 },
+    { key: "paciente", label: "PACIENTE", count: 1 },
+    { key: "diagnosticos", label: "DIAGNÓSTICO", count: data.diagnosticos?.length || 0 },
+    { key: "antecedentes", label: "ANTECEDENTE", count: data.antecedentes?.length || 0 },
+    { key: "ttocx", label: "QUIMIOTERAPIA", count: data.ttocx?.length || 0 },
+    { key: "ttoqt", label: "CIRUGÍA ONCOLÓGICA", count: data.ttoqt?.length || 0 },
+    { key: "ttort", label: "RADIOTERAPIA", count: data.ttort?.length || 0 },
+    { key: "ttotrasplante", label: "TRASPLANTE", count: data.ttotrasplante?.length || 0 },
+    { key: "ttocxreconst", label: "CIRUGÍA RECONSTRUCTIVA", count: data.ttocxreconst?.length || 0 },
+    { key: "ttopaliativos", label: "PALIATIVO", count: data.ttopaliativos?.length || 0 },
   ];
 
   // ==============================================================
@@ -690,7 +692,7 @@ const ModalPaciente = ({ documento, onClose }) => {
       return (
         <div className="tab-content-inner">
           <div className="section-header">
-            <h3>{activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}</h3>
+            <h3>{tabs.find(t => t.key === activeTab)?.label}</h3>
             <button onClick={() => addNewItem(activeTab)} className="btn-add-new">
               Agregar Nuevo
             </button>
@@ -738,7 +740,6 @@ const ModalPaciente = ({ documento, onClose }) => {
                 className={activeTab === t.key ? "tab active" : "tab"}
                 onClick={() => setActiveTab(t.key)}
               >
-                <span className="tab-icon">{t.icon}</span>
                 <span className="tab-label">{t.label}</span>
                 {t.count > 0 && <span className="badge">{t.count}</span>}
               </button>
