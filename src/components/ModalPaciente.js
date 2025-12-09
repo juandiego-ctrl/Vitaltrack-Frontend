@@ -8,8 +8,8 @@ const ModalPaciente = ({ documento, onClose }) => {
     paciente: null,
     diagnosticos: [],
     antecedentes: [],
-    ttocx: [],            // Quimioterapia (en tu backend parece que está mal nombrado como cirugía)
-    ttoqt: [],            // Cirugía oncológica
+    ttocx: [],            // Quimioterapia
+    ttoqt: [],            // Cirugía Oncológica
     ttort: [],            // Radioterapia
     ttotrasplante: [],
     archivos: [],
@@ -147,7 +147,7 @@ const ModalPaciente = ({ documento, onClose }) => {
   };
 
   // ==============================================================
-  // GUARDAR (PACIENTE Y DIAGNÓSTICOS + OTROS)
+  // GUARDAR (PACIENTE, DIAGNÓSTICOS Y TRATAMIENTOS)
   // ==============================================================
   const handleSave = async (section, item = null, index = null) => {
     setSaving(true);
@@ -212,7 +212,111 @@ const ModalPaciente = ({ documento, onClose }) => {
           };
           break;
 
-        // Puedes ir agregando más casos cuando implementes los demás endpoints
+        case "antecedentes":
+          const antId = dataToSave._id;
+          if (antId && antId !== "null") {
+            endpoint = `${API_BASE_URL}/antecedentes/${antId}`;
+            method = "PATCH";
+          } else {
+            endpoint = `${API_BASE_URL}/antecedentes`;
+            method = "POST";
+          }
+          bodyData = {
+            ...dataToSave,
+            V6NumId: documento
+          };
+          break;
+
+        case "ttocx":
+          const ttocxId = dataToSave._id;
+          if (ttocxId && ttocxId !== "null") {
+            endpoint = `${API_BASE_URL}/ttocx/${ttocxId}`;
+            method = "PATCH";
+          } else {
+            endpoint = `${API_BASE_URL}/ttocx`;
+            method = "POST";
+          }
+          bodyData = {
+            ...dataToSave,
+            V6NumID: documento
+          };
+          break;
+
+        case "ttoqt":
+          const ttoqtId = dataToSave._id;
+          if (ttoqtId && ttoqtId !== "null") {
+            endpoint = `${API_BASE_URL}/ttoqt/${ttoqtId}`;
+            method = "PATCH";
+          } else {
+            endpoint = `${API_BASE_URL}/ttoqt`;
+            method = "POST";
+          }
+          bodyData = {
+            ...dataToSave,
+            V6NumID: documento
+          };
+          break;
+
+        case "ttort":
+          const ttortId = dataToSave._id;
+          if (ttortId && ttortId !== "null") {
+            endpoint = `${API_BASE_URL}/ttort/${ttortId}`;
+            method = "PATCH";
+          } else {
+            endpoint = `${API_BASE_URL}/ttort`;
+            method = "POST";
+          }
+          bodyData = {
+            ...dataToSave,
+            V6NumID: documento
+          };
+          break;
+
+        case "ttotrasplante":
+          const ttotrasplanteId = dataToSave._id;
+          if (ttotrasplanteId && ttotrasplanteId !== "null") {
+            endpoint = `${API_BASE_URL}/ttotrasplante/${ttotrasplanteId}`;
+            method = "PATCH";
+          } else {
+            endpoint = `${API_BASE_URL}/ttotrasplante`;
+            method = "POST";
+          }
+          bodyData = {
+            ...dataToSave,
+            V6NumID: documento
+          };
+          break;
+
+        case "ttocxreconst":
+          const ttocxreconstId = dataToSave._id;
+          if (ttocxreconstId && ttocxreconstId !== "null") {
+            endpoint = `${API_BASE_URL}/ttocxreconstructiva/${ttocxreconstId}`;
+            method = "PATCH";
+          } else {
+            endpoint = `${API_BASE_URL}/ttocxreconstructiva`;
+            method = "POST";
+          }
+          bodyData = {
+            ...dataToSave,
+            V6NumID: documento
+          };
+          break;
+
+        case "ttopaliativos":
+          const ttopaliativosId = dataToSave._id;
+          if (ttopaliativosId && ttopaliativosId !== "null") {
+            endpoint = `${API_BASE_URL}/ttopaliativos/${ttopaliativosId}`;
+            method = "PATCH";
+          } else {
+            endpoint = `${API_BASE_URL}/ttopaliativos`;
+            method = "POST";
+          }
+          bodyData = {
+            ...dataToSave,
+            V6NumID: documento
+          };
+          break;
+
         default:
           alert("Sección no soportada aún para guardar");
           setSaving(false);
@@ -308,13 +412,13 @@ const ModalPaciente = ({ documento, onClose }) => {
       case "antecedentes":
         return { ...base, V42AntCancerPrim: "", V43FecDiagAnt: "", V44TipoCancerAnt: "" };
       case "ttocx":
-        return { ...base, V74RecibioCirugia: "", V75NumCirugias: "", V76FecPrimCir: "" };
+        return { ...base, V45RecibioQuimio: "", V46NumFasesQuimio: "", V47NumCiclosQuimio: "", V49FecIniEsq1: "" };
       case "ttoqt":
         return { ...base, V45RecibioQuimio: "", V46NumFasesQuimio: "", V47NumCiclosQuimio: "" };
       case "ttort":
         return { ...base, V86RecibioRadioterapia: "", V87NumSesionesRadio: "", V88FecIniEsq1Radio: "" };
       case "ttotrasplante":
-        return { ...base, V106RecibioTrasplanteCM: "", V107TipoTrasplanteCM: "" };
+        return { ...base, V106RecibioTrasplanteCM: "", V107TipoTrasplanteCM: "", V109FecTrasplanteCM: "" };
       case "ttocxreconst":
         return { ...base, V111RecibioCirugiaReconst: "", V112FecCirugiaReconst: "" };
       case "ttopaliativos":
@@ -357,10 +461,28 @@ const ModalPaciente = ({ documento, onClose }) => {
     { key: "V19FecRemision", label: "Fecha Remisión", type: "date" },
     { key: "V20FecIngInst", label: "Fecha Ingreso Inst.", type: "date" },
     { key: "V21TipoEstDiag", label: "Tipo Estudio Diagnóstico", type: "text" },
+    { key: "V22MotNoHistop", label: "Motivo No Histopatológico", type: "text" },
+    { key: "V23FecRecMuestra", label: "Fecha Recolección Muestra", type: "date" },
+    { key: "V24FecInfHistop", label: "Fecha Informe Histopatológico", type: "date" },
+    { key: "V25CodHabIPS", label: "Código Habilidad IPS", type: "text" },
+    { key: "V26Fec1raCons", label: "Fecha Primera Consulta", type: "date" },
     { key: "V27HistTumor", label: "Histología Tumor", type: "text" },
+    { key: "V28GradoDifTum", label: "Grado Diferenciación Tumor", type: "text" },
+    { key: "V29EstadifTum", label: "Estadificación Tumor", type: "text" },
+    { key: "V30FecEstadif", label: "Fecha Estadificación", type: "date" },
+    { key: "V31PruebaHER2", label: "Prueba HER2", type: "text" },
+    { key: "V32FecPruebaHER2", label: "Fecha Prueba HER2", type: "date" },
+    { key: "V33ResHER2", label: "Resultado HER2", type: "text" },
+    { key: "V34EstadifDukes", label: "Estadificación Dukes", type: "text" },
+    { key: "V35FecEstDukes", label: "Fecha Est. Dukes", type: "date" },
+    { key: "V36EstadifLinfMielo", label: "Estadificación Linf/Mielo", type: "text" },
+    { key: "V37ClasGleason", label: "Clasificación Gleason", type: "text" },
+    { key: "V38ClasRiesgoLL", label: "Clasificación Riesgo LL", type: "text" },
+    { key: "V39FecClasRiesgo", label: "Fecha Clas. Riesgo", type: "date" },
+    { key: "V40ObjTtoInicial", label: "Objetivo Tratamiento Inicial", type: "text" },
+    { key: "V41IntervMed", label: "Intervención Médica", type: "text" },
     { key: "agrupador", label: "Agrupador", type: "text" },
     { key: "observaciones", label: "Observaciones", type: "text" }
-    // ... puedes seguir agregando los demás campos cuando los necesites
   ];
 
   const antecedenteFields = [
@@ -370,10 +492,72 @@ const ModalPaciente = ({ documento, onClose }) => {
   ];
 
   const ttocxFields = [
-    { key: "V74RecibioCirugia", label: "Recibió Cirugía", type: "text" },
-    { key: "V75NumCirugias", label: "Número Cirugías", type: "text" },
-    { key: "V76FecPrimCir", label: "Fecha Primera Cirugía", type: "date" }
-    // ... más campos
+    { key: "V45RecibioQuimio", label: "Recibió Quimioterapia", type: "text" },
+    { key: "V46NumFasesQuimio", label: "Número Fases", type: "number" },
+    { key: "V47NumCiclosQuimio", label: "Número Ciclos", type: "number" },
+    { key: "V49FecIniEsq1", label: "Fecha Inicio", type: "date" },
+    { key: "V58FecFinTto", label: "Fecha Fin", type: "date" }
+  ];
+
+  const ttoqtFields = [
+    { key: "V45RecibioQuimio", label: "Recibió Quimio", type: "text" },
+    { key: "V46NumFasesQuimio", label: "Número Fases", type: "text" },
+    { key: "V47NumCiclosQuimio", label: "Número Ciclos", type: "text" }
+  ];
+
+  const ttortFields = [
+    { key: "V86RecibioRadioterapia", label: "Recibió Radioterapia", type: "text" },
+    { key: "V87NumSesionesRadio", label: "Número Sesiones", type: "number" },
+    { key: "V88FecIniEsq1Radio", label: "Fecha Inicio Esq. 1", type: "date" },
+    { key: "V89UbicTempEsq1Radio", label: "Ubicación Temp. Esq. 1", type: "text" },
+    { key: "V90TipoRadioEsq1", label: "Tipo Radio Esq. 1", type: "text" },
+    { key: "V91NumIPSRadioEsq1", label: "Num. IPS Radio Esq. 1", type: "number" },
+    { key: "V92CodIPSRadio1Esq1", label: "Cod. IPS Radio 1 Esq. 1", type: "text" },
+    { key: "V93CodIPSRadio2Esq1", label: "Cod. IPS Radio 2 Esq. 1", type: "text" },
+    { key: "V94FecFinEsq1Radio", label: "Fecha Fin Esq. 1", type: "date" },
+    { key: "V95CaractEsq1Radio", label: "Características Esq. 1", type: "text" },
+    { key: "V96MotFinEsq1Radio", label: "Motivo Fin Esq. 1", type: "text" },
+    { key: "V97FecIniUltEsqRadio", label: "Fecha Ini. Ult. Esq.", type: "date" },
+    { key: "V98UbicTempUltEsqRadio", label: "Ubic. Temp. Ult. Esq.", type: "text" },
+    { key: "V99TipoRadioUltEsq", label: "Tipo Radio Ult. Esq.", type: "text" },
+    { key: "V100NumIPSRadioUltEsq", label: "Num. IPS Radio Ult. Esq.", type: "number" },
+    { key: "V101CodIPSRadio1UltEsq", label: "Cod. IPS Radio 1 Ult. Esq.", type: "text" },
+    { key: "V102CodIPSRadio2UltEsq", label: "Cod. IPS Radio 2 Ult. Esq.", type: "text" },
+    { key: "V103FecFinUltEsqRadio", label: "Fecha Fin Ult. Esq.", type: "date" },
+    { key: "V104CaractUltEsqRadio", label: "Características Ult. Esq.", type: "text" },
+    { key: "V105MotFinUltEsqRadio", label: "Motivo Fin Ult. Esq.", type: "text" }
+  ];
+
+  const ttotrasplanteFields = [
+    { key: "V106RecibioTrasplanteCM", label: "Recibió Trasplante", type: "text" },
+    { key: "V107TipoTrasplanteCM", label: "Tipo Trasplante", type: "text" },
+    { key: "V109FecTrasplanteCM", label: "Fecha Trasplante", type: "date" }
+  ];
+
+  const ttocxreconstFields = [
+    { key: "V111RecibioCirugiaReconst", label: "Recibió Cirugía Reconstructiva", type: "text" },
+    { key: "V112FecCirugiaReconst", label: "Fecha Cirugía", type: "date" },
+    { key: "V113CodIPSCirugiaReconst", label: "Código IPS Cirugía", type: "text" }
+  ];
+
+  const ttopaliativosFields = [
+    { key: "V114RecibioCuidadoPaliativo", label: "Recibió Cuidados Paliativos", type: "text" },
+    { key: "V114_1CP_MedEspecialista", label: "Médico Especialista", type: "text" },
+    { key: "V114_2CP_ProfSaludNoMed", label: "Prof. Salud No Médico", type: "text" },
+    { key: "V114_3CP_MedOtraEspecialidad", label: "Médico Otra Especialidad", type: "text" },
+    { key: "V114_4CP_MedGeneral", label: "Médico General", type: "text" },
+    { key: "V114_5CP_TrabajoSocial", label: "Trabajo Social", type: "text" },
+    { key: "V114_6CP_OtroProfSalud", label: "Otro Prof. Salud", type: "text" },
+    { key: "V115FecPrimConsCP", label: "Fecha Primera Consulta CP", type: "date" },
+    { key: "V116CodIPS_CP", label: "Código IPS CP", type: "text" },
+    { key: "V117ValoradoPsiquiatria", label: "Valorado Psiquiatría", type: "text" },
+    { key: "V118FecPrimConsPsiq", label: "Fecha Primera Consulta Psiquiatría", type: "date" },
+    { key: "V119CodIPS_Psiq", label: "Código IPS Psiquiatría", type: "text" },
+    { key: "V120ValoradoNutricion", label: "Valorado Nutrición", type: "text" },
+    { key: "V121FecPrimConsNutr", label: "Fecha Primera Consulta Nutrición", type: "date" },
+    { key: "V122CodIPS_Nutr", label: "Código IPS Nutrición", type: "text" },
+    { key: "V123TipoSoporteNutricional", label: "Tipo Soporte Nutricional", type: "text" },
+    { key: "V124TerapiasComplementarias", label: "Terapias Complementarias", type: "text" }
   ];
 
   const getFieldsForSection = (section) => {
@@ -382,7 +566,11 @@ const ModalPaciente = ({ documento, onClose }) => {
       case "diagnosticos": return diagnosticoFields;
       case "antecedentes": return antecedenteFields;
       case "ttocx": return ttocxFields;
-      // Agrega más cuando implementes los formularios
+      case "ttoqt": return ttoqtFields;
+      case "ttort": return ttortFields;
+      case "ttotrasplante": return ttotrasplanteFields;
+      case "ttocxreconst": return ttocxreconstFields;
+      case "ttopaliativos": return ttopaliativosFields;
       default: return [];
     }
   };
@@ -418,7 +606,7 @@ const ModalPaciente = ({ documento, onClose }) => {
         <div className="form-field" key={label}>
           <label>{label}</label>
           <input
-            type="text"
+            type={type === "number" ? "number" : "text"}
             value={value || ""}
             onChange={(e) => onChange(e.target.value)}
             placeholder={label}
@@ -486,10 +674,6 @@ const ModalPaciente = ({ documento, onClose }) => {
     { key: "ttotrasplante", label: "Trasplante", icon: "Heart", count: data.ttotrasplante?.length || 0 },
     { key: "ttocxreconst", label: "Cirugía Reconst.", icon: "Redo", count: data.ttocxreconst?.length || 0 },
     { key: "ttopaliativos", label: "Paliativos", icon: "Bandage", count: data.ttopaliativos?.length || 0 },
-    { key: "citas", label: "Citas", icon: "Calendar", count: data.citas?.length || 0 },
-    { key: "medicamentos", label: "Medicamentos", icon: "Pill", count: data.medicamentos?.length || 0 },
-    { key: "archivos", label: "Archivos", icon: "Folder", count: data.archivos?.length || 0 },
-    { key: "zipsSoportes", label: "Zips", icon: "Package", count: data.zipsSoportes?.length || 0 },
   ];
 
   // ==============================================================
@@ -502,7 +686,7 @@ const ModalPaciente = ({ documento, onClose }) => {
       return <div className="tab-content-inner">{renderFormSection("paciente", pacienteFields)}</div>;
     }
 
-    if (["diagnosticos", "antecedentes", "ttocx", "ttoqt"].includes(activeTab)) {
+    if (["diagnosticos", "antecedentes", "ttocx", "ttoqt", "ttort", "ttotrasplante", "ttocxreconst", "ttopaliativos"].includes(activeTab)) {
       return (
         <div className="tab-content-inner">
           <div className="section-header">
@@ -518,26 +702,6 @@ const ModalPaciente = ({ documento, onClose }) => {
           ) : (
             <p className="no-data">No hay registros</p>
           )}
-        </div>
-      );
-    }
-
-    // Otras pestañas (archivos, citas, etc.) mantienen el render actual
-    if (activeTab === "archivos") {
-      return (
-        <div className="tab-content-inner">
-          <div className="section-header"><h3>Archivos Adjuntos</h3></div>
-          {data.archivos?.length > 0 ? (
-            <div className="archivos-list">
-              {data.archivos.map((a, i) => (
-                <div key={i} className="archivo-item">
-                  <a href={a.url} target="_blank" rel="noopener noreferrer">
-                    {a.nombre || "Archivo"} {a.fecha && `(${new Date(a.fecha).toLocaleDateString()})`}
-                  </a>
-                </div>
-              ))}
-            </div>
-          ) : <p className="no-data">No hay archivos</p>}
         </div>
       );
     }
