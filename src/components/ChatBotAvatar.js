@@ -6,40 +6,69 @@ import botAvatar from '../assets/images/chatbot.avif';
 const ChatBotAvatar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [question, setQuestion] = useState('');
-  const [messages, setMessages] = useState([]);
+  const [messages, setMessages] = useState(() => {
+    const savedMessages = localStorage.getItem('chatMessages');
+    return savedMessages ? JSON.parse(savedMessages) : [];
+  });
   const [loading, setLoading] = useState(false);
   const [cooldown, setCooldown] = useState(false);
   const inputRef = useRef(null);
 
-  // Respuestas predefinidas según palabras clave o preguntas exactas
+  // Respuestas predefinidas organizadas por categorías
   const respuestasPredeterminadas = {
-    'hola': '¡Hola! ¿En qué puedo ayudarte hoy?',
-    'agendar cita': 'Puedes agendar una cita desde la sección "Mis citas" del menú principal.',
-    'resultados': 'Los resultados de tus exámenes estarán disponibles en tu perfil en un plazo de 48 horas.',
-    'tratamiento': 'Cada tratamiento es personalizado. Por favor consulta con tu especialista para más detalles.',
-    'gracias': '¡Con gusto! Estoy aquí para ayudarte.',
-    'olvide mi contraseña': 'Puedes restablecer tu contraseña comunicandote con nuestra area de soporte al correo vitaltrack@gmail.com',
-    'contacto': 'Puedes contactarnos al correo vitaltrack@gmail.com o al teléfono 123-456-7890.',
-    'horario de atención': 'Nuestro horario de atención es de lunes a viernes, de 8:00 AM a 6:00 PM.',
+    saludos: {
+      'hola': '¡Hola! ¿En qué puedo ayudarte hoy?',
+      'buenos dias': '¡Buenos días! ¿Cómo puedo asistirte?',
+      'buenas tardes': '¡Buenas tardes! ¿En qué puedo ayudarte?',
+      'buenas noches': '¡Buenas noches! ¿Necesitas algo antes de dormir?',
+      'gracias': '¡Con gusto! Estoy aquí para ayudarte.',
+      'adios': '¡Hasta luego! Que tengas un buen día.',
+    },
+    citas: {
+      'agendar cita': 'Puedes agendar una cita desde la sección "Mis citas" del menú principal.',
+      'cambiar cita': 'Para cambiar una cita, accede a "Mis citas" y selecciona la opción de modificar.',
+      'cancelar cita': 'Puedes cancelar tu cita desde "Mis citas" en el menú principal.',
+      'recordatorio cita': 'Te recordaremos tu cita por email y en la app.',
+    },
+    resultados: {
+      'resultados': 'Los resultados de tus exámenes estarán disponibles en tu correo en un plazo de 48 horas.',
+      'ver resultados': 'Accede a tu correo para ver los resultados de tus exámenes.',
+      'tiempo resultados': 'Los resultados suelen estar disponibles en 24-48 horas.',
+    },
+    tratamientos: {
+      'tratamiento': 'Cada tratamiento es personalizado. Por favor consulta con tu especialista para más detalles.',
+      'medicamentos': 'Tu lista de medicamentos está en la sección "Medicamentos" de tu perfil.',
+      'dosis': 'Consulta las dosis recomendadas con tu médico especialista.',
+      'efectos secundarios': 'Si experimentas efectos secundarios, contacta inmediatamente a tu médico.',
+    },
+    soporte: {
+      'olvide mi contraseña': 'Puedes restablecer tu contraseña comunicandote con nuestra area de soporte al correo vitaltrack@gmail.com',
+      'problema login': 'Si tienes problemas para iniciar sesión, contacta a soporte en vitaltrack@gmail.com',
+      'ayuda': 'Estoy aquí para ayudarte. ¿Qué necesitas?',
+      'contacto': 'Puedes contactarnos al correo vitaltrack@gmail.com o al teléfono 123-456-7890.',
+      'horario de atención': 'Nuestro horario de atención es de lunes a viernes, de 8:00 AM a 6:00 PM.',
+    },
   };
 
   const obtenerRespuesta = (pregunta) => {
     const preguntaNormalizada = pregunta.toLowerCase().trim();
-    for (const clave in respuestasPredeterminadas) {
-      if (preguntaNormalizada.includes(clave)) {
-        return respuestasPredeterminadas[clave];
+    for (const categoria in respuestasPredeterminadas) {
+      for (const clave in respuestasPredeterminadas[categoria]) {
+        if (preguntaNormalizada.includes(clave)) {
+          return respuestasPredeterminadas[categoria][clave];
+        }
       }
     }
     return 'Lo siento, aún estoy aprendiendo. Por favor consulta con un especialista.';
   };
 
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && messages.length === 0) {
       setMessages([{ sender: 'bot', text: '¡Hola! ¿En qué puedo ayudarte?' }]);
       setQuestion('');
       setTimeout(() => inputRef.current?.focus(), 100);
     }
-  }, [isOpen]);
+  }, [isOpen, messages.length]);
 
   const handleAsk = () => {
     if (!question.trim() || loading || cooldown) return;
@@ -62,6 +91,7 @@ const ChatBotAvatar = () => {
 
   const handleKeyDown = (e) => {
     if (e.key === 'Enter') handleAsk();
+    if (e.key === 'Escape' && isOpen) setIsOpen(false);
   };
 
   return (
@@ -71,10 +101,16 @@ const ChatBotAvatar = () => {
       </div>
 
       {isOpen && (
-        <div className={styles.chatBox}>
-          <div className={styles.header}>
+        <div className={styles.chatBox} role="dialog" aria-labelledby="chat-header" aria-modal="true">
+          <div className={styles.header} id="chat-header">
             <span>VitalBot</span>
-            <button onClick={() => setIsOpen(false)}><FaTimes /></button>
+            <button
+              onClick={() => setIsOpen(false)}
+              aria-label="Cerrar chat"
+              title="Cerrar chat"
+            >
+              <FaTimes />
+            </button>
           </div>
 
           <div className={styles.messages}>
